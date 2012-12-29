@@ -1,3 +1,7 @@
+
+#define UNIX_EPOCH					2208988800UL			// this is the difference between 1900 (NTP Epoch) and 1970, the Unix Epoc
+
+
 /* SNTP protocol defines */
 #define SNTP_PORT                   123
 #define SNTP_MAX_DATA_LEN           48

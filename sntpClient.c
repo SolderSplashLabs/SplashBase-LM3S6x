@@ -139,18 +139,20 @@ void SntpGetTime( void )
 // *****************************************************************************
 static void SntpRecieve(void *arg, struct udp_pcb *pcb, struct pbuf *p, struct ip_addr *addr, u16_t port)
 {
-volatile u8_t sntp_response[SNTP_MAX_DATA_LEN];
-u8_t i = 0;
+//volatile u8_t sntp_response[SNTP_MAX_DATA_LEN];
+//u8_t i = 0;
 char *data;
 volatile unsigned long timestamp = 0;
 
 	data = p->payload;
 
-	// TODO : dont need to do this, it's just so we can inspect the data, remove
+	/*
+	// Debug : dont need to do this, it's just so we can inspect the data, remove
 	for (i=0; i< p->len; i++)
 	{
 		sntp_response[i] = data[i];
 	}
+	*/
 
 	// Transmit Timestamp starts at byte 40
 	// Quick and dirty method, take the transmit time of the packet and use that as our clock time
@@ -164,7 +166,7 @@ volatile unsigned long timestamp = 0;
 	timestamp |= data[43];
 
 	// Timestamp now contains the current no of seconds from 1900, lets convert it to the unix version of 1970
-	timestamp -= 2208988800UL;
+	timestamp -= UNIX_EPOCH;
 
 	// instead of being always slow add a second on so that were always fast
 	timestamp ++;

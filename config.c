@@ -414,6 +414,7 @@ typedef struct
 }
 tStringMap;
 
+#ifdef HTTP_ENABLED
 //*****************************************************************************
 //
 //! The array used to map between parity identifiers and their human-readable
@@ -445,6 +446,7 @@ static const tStringMap g_psFlowControlMap[] =
 
 #define NUM_FLOW_CONTROL_MAPS   (sizeof(g_psFlowControlMap) / \
                                  sizeof(tStringMap))
+#endif
 
 //*****************************************************************************
 //
@@ -1149,12 +1151,12 @@ ConfigUpdateAllParameters(tBoolean bUpdateIP)
     //LocatorAppTitleSet((char *)g_sParameters.ucModName);
 
     // And the SolderSplash UDP Protocol
-    SSC_SetUnitName((char *)g_sParameters.ucModName);
+    SSC_SetUnitName((ui8 *)g_sParameters.ucModName);
 
-    SSC_SetRelayName((char *)g_sParameters.relayOneName, 0 );
-	SSC_SetRelayName((char *)g_sParameters.relayTwoName, 1 );
-	SSC_SetRelayName((char *)g_sParameters.relayThreeName, 2 );
-	SSC_SetRelayName((char *)g_sParameters.relayFourName, 3 );
+    SSC_SetRelayName((ui8 *)g_sParameters.relayOneName, 0 );
+	SSC_SetRelayName((ui8 *)g_sParameters.relayTwoName, 1 );
+	SSC_SetRelayName((ui8 *)g_sParameters.relayThreeName, 2 );
+	SSC_SetRelayName((ui8 *)g_sParameters.relayFourName, 3 );
 
 }
 

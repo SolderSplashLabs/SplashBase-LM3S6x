@@ -83,14 +83,14 @@ struct SSC_COMMAND_STRUCT
 
 struct udp_pcb *UdpControlPort;
 
-#endif /*UDPCONTROL_H_*/
-
-
 static void SSC_ProcessCommand(struct udp_pcb *pcb, struct pbuf *p, struct ip_addr *addr);
 static void SSC_SendReply(struct pbuf *p, struct ip_addr *addr);
-static void SSC_Recieve(void *arg, struct udp_pcb *pcb, struct pbuf *p, struct ip_addr *addr, u16_t port);
+static void SSC_Recieve(void *arg, struct udp_pcb *pcb, struct pbuf *p, struct ip_addr *addr, ui16 port);
+
+#endif /*UDPCONTROL_H_*/
+
 void SSC_Init(void);
-void SSC_MACAddrSet(unsigned char *pucMACArray);
-void SSC_SetRelayName(const char *relayName, ui8 relayNo);
-void SSC_SetUnitName(const char *pcAppTitle);
+void SSC_MACAddrSet(ui8 *pucMACArray);
+void SSC_SetRelayName(const ui8 *relayName, ui8 relayNo);
+void SSC_SetUnitName(const ui8 *pcAppTitle);
 

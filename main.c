@@ -29,6 +29,11 @@
 #include "ethernetControl.h"
 #include "logicController.h"
 #include "adcControl.h"
+#include "colourModes.h"
+#include "pwmControl.h"
+#include "relayControl.h"
+#include "udpControl.h"
+#include "solderBridge/solderBridgeSpi.h"
 #include "time.h"
 
 // *****************************************************************************
@@ -124,13 +129,13 @@ int main(void)
 	Ethernet_GetMacAddress((ui8 *)&tmpMacAddr[0]);
 
 	SSC_Init();
-	SSC_MACAddrSet(tmpMacAddr);
-	SSC_SetUnitName((char *)g_sParameters.ucModName);
+	SSC_MACAddrSet((ui8 *)tmpMacAddr);
+	SSC_SetUnitName((ui8 *)g_sParameters.ucModName);
 
-	SSC_SetRelayName((char *)g_sParameters.relayOneName, 0);
-	SSC_SetRelayName((char *)g_sParameters.relayTwoName, 1);
-	SSC_SetRelayName((char *)g_sParameters.relayThreeName, 2);
-	SSC_SetRelayName((char *)g_sParameters.relayFourName, 3);
+	SSC_SetRelayName((ui8 *)g_sParameters.relayOneName, 0);
+	SSC_SetRelayName((ui8 *)g_sParameters.relayTwoName, 1);
+	SSC_SetRelayName((ui8 *)g_sParameters.relayThreeName, 2);
+	SSC_SetRelayName((ui8 *)g_sParameters.relayFourName, 3);
 
 	while (1)
 	{

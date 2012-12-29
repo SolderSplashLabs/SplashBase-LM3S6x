@@ -21,10 +21,13 @@
 #include "datatypes.h"
 #include "globals.h"
 
+#include "config.h"
+
 #include "relayControl.h"
 #include "pwmControl.h"
 #include "colourModes.h"
-#include "config.h"
+#include "logicController.h"
+#include "solderBridge\solderBridgeSpi.h"
 
 #define UDPCONTROL
 #include "udpControl.h"
@@ -81,7 +84,7 @@ void SSC_MACAddrSet(unsigned char *pucMACArray)
 // Sets the unit name that is used when talking to the network
 //
 //*****************************************************************************
-void SSC_SetUnitName(const char *pcAppTitle)
+void SSC_SetUnitName(const ui8 *pcAppTitle)
 {
 ui8 strLenCnt = 0;
 
@@ -109,7 +112,7 @@ ui8 strLenCnt = 0;
 // Sets the unit name that is used when talking to the network
 //
 //*****************************************************************************
-void SSC_SetRelayName(const char *relayName, ui8 relayNo)
+void SSC_SetRelayName(const ui8 *relayName, ui8 relayNo)
 {
 ui8 strLenCnt = 0;
 ui8 replyBufPos = 0;
@@ -373,7 +376,7 @@ ui8 replyWithStatus = 0;
 			//LocatorAppTitleSet((char *)g_sParameters.ucModName);
 
 			// And the SolderSplash UDP Protocol
-			SSC_SetUnitName((char *)g_sParameters.ucModName);
+			SSC_SetUnitName((ui8 *)g_sParameters.ucModName);
 
 			ConfigSave();
 		break;
@@ -392,7 +395,7 @@ ui8 replyWithStatus = 0;
 
 					strncpy((char *)g_sWorkingDefaultParameters.relayOneName, (char *)g_sParameters.relayOneName, MAX_RELAYNAME_LEN);
 
-					SSC_SetRelayName((char *)g_sParameters.relayOneName, 0 );
+					SSC_SetRelayName((ui8 *)g_sParameters.relayOneName, 0 );
 
 				break;
 
@@ -402,7 +405,7 @@ ui8 replyWithStatus = 0;
 
 					strncpy((char *)g_sWorkingDefaultParameters.relayTwoName, (char *)g_sParameters.relayTwoName, MAX_RELAYNAME_LEN);
 
-					SSC_SetRelayName((char *)g_sParameters.relayTwoName, 1 );
+					SSC_SetRelayName((ui8 *)g_sParameters.relayTwoName, 1 );
 				break;
 
 				case 2 :
@@ -411,7 +414,7 @@ ui8 replyWithStatus = 0;
 
 					strncpy((char *)g_sWorkingDefaultParameters.relayThreeName, (char *)g_sParameters.relayThreeName, MAX_RELAYNAME_LEN);
 
-					SSC_SetRelayName((char *)g_sParameters.relayThreeName, 2 );
+					SSC_SetRelayName((ui8 *)g_sParameters.relayThreeName, 2 );
 				break;
 
 				case 3 :
@@ -420,7 +423,7 @@ ui8 replyWithStatus = 0;
 
 					strncpy((char *)g_sWorkingDefaultParameters.relayFourName, (char *)g_sParameters.relayFourName, MAX_RELAYNAME_LEN);
 
-					SSC_SetRelayName((char *)g_sParameters.relayFourName, 3 );
+					SSC_SetRelayName((ui8 *)g_sParameters.relayFourName, 3 );
 				break;
 			}
 
@@ -457,11 +460,11 @@ ui8 replyWithStatus = 0;
 		break;
 
 		case SSC_LOGIC_INSERT_CON :
-			LogicInsertNewCondition( pucData[1], &pucData[4] );
+			LogicInsertNewCondition( pucData[1], (ui8 *)&pucData[4] );
 		break;
 
 		case SSC_SB_SERVOPOS :
-			SB_ServoSet(0xFF, &pucData[4], pucData[2], pucData[3]);
+			SB_ServoSet(0xFF, (ui8 *)&pucData[4], pucData[2], pucData[3]);
 		break;
 
 		default :
