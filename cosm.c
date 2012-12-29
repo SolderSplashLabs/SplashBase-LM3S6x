@@ -98,7 +98,10 @@ void CosmTest(unsigned long data)
 	// Open up a socket
 	pcb=tcp_new();
 	tcp_bind(pcb, IP_ADDR_ANY, 1223);
-	tcp_connect(pcb, &CosmIpAddress, 80, CosmOnline);
+	if ( ERR_OK == tcp_connect(pcb, &CosmIpAddress, 80, CosmOnline) )
+	{
+		// Success!
+	}
 }
 
 void CosmOnline ( void *arg, struct tcp_pcb *pcb, err_t err )
