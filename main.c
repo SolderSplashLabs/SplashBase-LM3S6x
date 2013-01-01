@@ -20,6 +20,7 @@
 #include "driverlib/interrupt.h"
 #include "driverlib/sysctl.h"
 #include "driverlib/systick.h"
+#include "upnp.h"
 
 #include "datatypes.h"
 #include "globals.h"
@@ -82,6 +83,11 @@ void InitialiseHW ( void )
 		SysCtlLDOSet(SYSCTL_LDO_2_75V);
 	}
 
+	// 50 MHz
+	SysCtlClockSet(SYSCTL_SYSDIV_4 | SYSCTL_USE_PLL | SYSCTL_OSC_MAIN |
+				   SYSCTL_XTAL_8MHZ);
+
+
 	// Enable Peripherals
 	SysCtlPeripheralEnable(SYSCTL_PERIPH_ETH);
 	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOA);
@@ -94,6 +100,10 @@ void InitialiseHW ( void )
 	SysCtlPeripheralEnable(SYSCTL_PERIPH_UART0);
 	SysCtlPeripheralEnable(SYSCTL_PERIPH_UART1);
 
+	// Set interrupt priority levels
+	IntPrioritySet(INT_ETH, 0x20);
+	IntPrioritySet(FAULT_SYSTICK, 0x40);
+
 	AdcInit();
 	pwmInit();
 	relayInit();
@@ -105,7 +115,11 @@ void InitialiseHW ( void )
 	// to ensure that the peripheral is not accessed during this brief time
 	// period.
 
+	UPnPInit();
+
 	Ethernet_Init();
+
+	LogicStartStop(true);
 
 	// Most, if not all M3's have a SysTick which you can use for scheduling your code
 	SysTickPeriodSet(SysCtlClockGet() / SYSTICKHZ);

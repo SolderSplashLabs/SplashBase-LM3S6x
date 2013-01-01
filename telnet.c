@@ -34,7 +34,7 @@
 #include "driverlib/sysctl.h"
 #include "driverlib/systick.h"
 #include "driverlib/uart.h"
-#include "utils/lwiplib.h"
+#include "lwiplib.h"
 #include "utils/ustdlib.h"
 #include "config.h"
 #include "serial.h"

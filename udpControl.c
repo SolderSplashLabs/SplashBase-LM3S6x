@@ -14,7 +14,7 @@
 #include "inc/hw_memmap.h"
 #include "inc/hw_types.h"	
 #include "inc/hw_nvic.h"
-#include "utils/lwiplib.h"
+#include "lwiplib.h"
 #include "driverlib/gpio.h"
 #include "driverlib/sysctl.h"
 

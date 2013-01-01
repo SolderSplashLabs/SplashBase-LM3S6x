@@ -27,7 +27,7 @@
 // Ensure that the lwIP Compile Time Options are included first.
 //
 //*****************************************************************************
-#include "utils/lwiplib.h"
+#include "lwiplib.h"
 
 //*****************************************************************************
 //

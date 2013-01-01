@@ -97,7 +97,6 @@ void lwIPHostTimerHandler (void)
 	if(bLinkStatusUp != ethernetConnected)
 	{
 		// Network Connection status has changed
-		ethernetConnected = bLinkStatusUp;
 	}
 
 	ipAddress = lwIPLocalIPAddrGet();
@@ -109,12 +108,13 @@ void lwIPHostTimerHandler (void)
 			SntpGetTime();
 			askedForTime = true;
 		}
+	}
+
 
 #ifdef UPNP_ENABLED
-		msCounter += SYSTICKMS;
-		UPnPHandler(msCounter);
+	msCounter += SYSTICKMS;
+	UPnPHandler(msCounter);
 #endif
-	}
 }
 
 // *****************************************************************************

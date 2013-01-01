@@ -267,12 +267,13 @@ typedef struct
     unsigned long colour1;
     unsigned long colour2;
 
-
+    unsigned char SolderBridgeList[5];
 
     //
     //! Padding to ensure the whole structure is 256 bytes long.
     //
-    unsigned char ucReserved2[44];
+    //unsigned char ucReserved2[39];
+    unsigned char ucReserved2[295];
 }
 tConfigParameters;
 
@@ -307,7 +308,7 @@ tConfigParameters;
 //! and should be large enough to contain the tConfigParameters structure.
 //
 //*****************************************************************************
-#define FLASH_PB_SIZE           256
+#define FLASH_PB_SIZE           512
 
 //*****************************************************************************
 //

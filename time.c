@@ -80,7 +80,7 @@ ui32 Time_Uptime ( void )
 
 // *****************************************************************************
 // Time_Get
-// the calling function supplys a structure and it is populated with the current time
+// the calling function supplies a structure and it is populated with the current time
 // *****************************************************************************
 void Time_Get ( TIME_STRUCT *time )
 {

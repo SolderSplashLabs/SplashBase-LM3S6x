@@ -8,14 +8,26 @@
 #include "driverlib/gpio.h"
 #include "driverlib/ssi.h"
 
-#define SB_SPI_SLAVE0	GPIO_PIN_0
-#define SB_SPI_SLAVE1	GPIO_PIN_1
-#define SB_SPI_SLAVE2	GPIO_PIN_2
-#define SB_SPI_SLAVE3	GPIO_PIN_3
-#define SB_SPI_SLAVE4	GPIO_PIN_4
+#include "solderBridgeSpi.h"
 
-#define SB_SPI_CS_PORT	GPIO_PORTE_BASE
-#define SB_SPI_CS_PINS	{(SB_SPI_SLAVE0 | SB_SPI_SLAVE1 | SB_SPI_SLAVE2 | SB_SPI_SLAVE3 | SB_SPI_SLAVE4);}
+ui8 SolderBridgeList[ SB_SPI_CS_COUNT ];
+
+// --------------------------------------------------------------------------------------
+// SB_SetupList
+//
+// --------------------------------------------------------------------------------------
+void SB_SetupList ( ui8 *bridgeList )
+{
+	if (bridgeList != 0)
+	{
+		// TODO : would a memcpy be less work...?
+		SolderBridgeList[0] = bridgeList[0];
+		SolderBridgeList[1] = bridgeList[1];
+		SolderBridgeList[2] = bridgeList[2];
+		SolderBridgeList[3] = bridgeList[3];
+		SolderBridgeList[4] = bridgeList[4];
+	}
+}
 
 
 // --------------------------------------------------------------------------------------

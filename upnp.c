@@ -26,7 +26,7 @@
 #include "inc/hw_memmap.h"
 #include "inc/hw_types.h"
 #include "driverlib/ethernet.h"
-#include "utils/lwiplib.h"
+#include "lwiplib.h"
 #include "utils/ustdlib.h"
 #include "config.h"
 #include "upnp.h"
@@ -120,7 +120,7 @@ static const char g_pcDescriptionXML1ofN[] =
     "<minor>0</minor>\n"
     "</specVersion>\n"
     "<device>\n"
-    "<deviceType>urn:schemas-upnp-org:device:SplashBase:1</deviceType>\n"
+    "<deviceType>urn:schemas-upnp-org:device:SplashLight:1</deviceType>\n"
     "<friendlyName>"
 };
 static const char g_pcDescriptionXML2ofN[] =
@@ -132,11 +132,11 @@ static const char g_pcDescriptionXML3ofN[] =
     "</friendlyName>\n"
     "<manufacturer>SolderSplash Labs</manufacturer>\n"
     "<manufacturerURL>http://www.soldersplash.co.uk</manufacturerURL>\n"
-    "<modelDescription>SplashBase Dev Board</modelDescription>\n"
-    "<modelName>SplashBase Base Board</modelName>\n"
-    "<modelNumber>SplashBase</modelNumber>\n"
-	"<modelURL>http://www.soldersplash.co.uk/products/splashbase-lm3s6/</modelURL>\n"
-    "<UDN>uuid:upnp_SplashBase-"
+    "<modelDescription>SplashLight Dev Board</modelDescription>\n"
+    "<modelName>SplashLight Dev Board</modelName>\n"
+    "<modelNumber>SplashLight</modelNumber>\n"
+	"<modelURL>http://www.soldersplash.co.uk/splashlight/</modelURL>\n"
+    "<UDN>uuid:upnp_SplashLight-"
 };
 static const char g_pcDescriptionXML4ofN[] =
 {
@@ -181,7 +181,7 @@ static const char g_pcDiscoverRoot1[] =
     "NT: upnp:rootdevice\r\n"
     "NTS: ssdp:alive\r\n"
     "SERVER: lwIP/1.3.2\r\n"
-    "USN: uuid:upnp_SplashBase-%02X%02X%02X%02X%02X%02X::upnp:rootdevice\r\n"
+    "USN: uuid:upnp_SplashLight-%02X%02X%02X%02X%02X%02X::upnp:rootdevice\r\n"
     "\r\n"
 };
 
@@ -196,10 +196,10 @@ static const char g_pcDiscoverRoot2[] =
     "HOST: 239.255.255.250:1900\r\n"
     "CACHE-CONTROL: max-age=60\r\n"
     "LOCATION: http://%d.%d.%d.%d:%d/description.xml\r\n"
-    "NT: uuid:upnp_SplashBase-%02X%02X%02X%02X%02X%02X\r\n"
+    "NT: uuid:upnp_SplashLight-%02X%02X%02X%02X%02X%02X\r\n"
     "NTS: ssdp:alive\r\n"
     "SERVER: lwIP/1.3.2\r\n"
-    "USN: uuid:upnp_SplashBase-%02X%02X%02X%02X%02X%02X\r\n"
+    "USN: uuid:upnp_SplashLight-%02X%02X%02X%02X%02X%02X\r\n"
     "\r\n"
 };
 
@@ -214,10 +214,10 @@ static const char g_pcDiscoverRoot3[] =
     "HOST: 239.255.255.250:1900\r\n"
     "CACHE-CONTROL: max-age=60\r\n"
     "LOCATION: http://%d.%d.%d.%d:%d/description.xml\r\n"
-    "NT: urn:schemas-upnp-org:device:SplashBase:1\r\n"
+    "NT: urn:schemas-upnp-org:device:SplashLight:1\r\n"
     "NTS: ssdp:alive\r\n"
     "SERVER: lwIP/1.3.2\r\n"
-    "USN: uuid:upnp_SplashBase-%02X%02X%02X%02X%02X%02X\r\n"
+    "USN: uuid:upnp_SplashLight-%02X%02X%02X%02X%02X%02X\r\n"
     "\r\n"
 };
 
@@ -230,9 +230,9 @@ static const char g_pcDiscoverByeBye[] =
 {
     "NOTIFY * HTTP/1.1\r\n"
     "HOST: 239.255.255.250:1900\r\n"
-    "NT: urn:schemas-upnp-org:device:SplashBase:1\r\n"
+    "NT: urn:schemas-upnp-org:device:SplashLight:1\r\n"
     "NTS: ssdp:byebye\r\n"
-    "USN: uuid:upnp_SplashBase-%02X%02X%02X%02X%02X%02X\r\n"
+    "USN: uuid:upnp_SplashLight-%02X%02X%02X%02X%02X%02X\r\n"
     "\r\n"
 };
 
@@ -252,7 +252,7 @@ static const char g_pcResponseRoot1[] =
     "LOCATION: http://%d.%d.%d.%d:%d/description.xml\r\n"
     "SERVER: lwIP/1.3.2\r\n"
     "ST: upnp:rootdevice\r\n"
-    "USN: uuid:upnp_SplashBase-%02X%02X%02X%02X%02X%02X::upnp:rootdevice\r\n"
+    "USN: uuid:upnp_SplashLight-%02X%02X%02X%02X%02X%02X::upnp:rootdevice\r\n"
     "\r\n"
 };
 
@@ -261,7 +261,7 @@ static const char g_pcResponseRoot1[] =
 // The search target string corresponding to the URN for this device.
 //
 //*****************************************************************************
-#define SCHEMA_SEARCH_TARGET "urn:schemas-upnp-org:device:SplashBase:1"
+#define SCHEMA_SEARCH_TARGET "urn:schemas-upnp-org:device:SplashLight:1"
 
 //*****************************************************************************
 //
@@ -678,7 +678,7 @@ UPnP_recv_udp(void *arg, struct udp_pcb *pcb, struct pbuf *p,
     // Build our unique identifier.
     //
     lwIPLocalMACGet(pucMACAddr);
-    usprintf(pcBuf, "uuid:upnp_SplashBase-%02X%02X%02X%02X%02X%02X",
+    usprintf(pcBuf, "uuid:upnp_SplashLight-%02X%02X%02X%02X%02X%02X",
              pucMACAddr[0], pucMACAddr[1], pucMACAddr[2], pucMACAddr[3],
              pucMACAddr[4], pucMACAddr[5]);
 

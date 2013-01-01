@@ -78,7 +78,7 @@
 //*****************************************************************************
 //#define MEMP_NUM_PBUF                   16
 //#define MEMP_NUM_RAW_PCB                4
-//#define MEMP_NUM_UDP_PCB                4
+#define MEMP_NUM_UDP_PCB                8
 #define MEMP_NUM_TCP_PCB                40          // default is 5
 //#define MEMP_NUM_TCP_PCB_LISTEN         8
 #define MEMP_NUM_TCP_SEG                48          // default is 16
@@ -222,7 +222,7 @@
 //*****************************************************************************
 //#define LWIP_TCP                        1
 //#define TCP_TTL                         (IP_DEFAULT_TTL)
-#define TCP_WND                         2048        // default is 2048
+#define TCP_WND                         4096		// 2048        // default is 2048
 //#define TCP_MAXRTX                      12
 //#define TCP_SYNMAXRTX                   6
 //#define TCP_QUEUE_OOSEQ                 1

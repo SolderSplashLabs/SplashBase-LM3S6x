@@ -16,12 +16,17 @@
 #include "driverlib/gpio.h"
 #include "driverlib/sysctl.h"
 #include "driverlib/systick.h"
+#include "lwiplib.h"
+#include "utils/ustdlib.h"
 
 #include "datatypes.h"
 
 #include "adcControl.h"
 #include "pwmControl.h"
 #include "relayControl.h"
+#include "ethernetControl.h"
+#include "time.h"
+#include "cosm.h"
 
 #define _LOGIC_H_
 #include "logicController.h"
@@ -32,12 +37,16 @@ LOGIC_CONDITION LogicConditions[LOGIC_MAX_CONDITIONS];
 
 ui32 GPIO_REGISTERS[] = { GPIO_PORTA_BASE, GPIO_PORTB_BASE, GPIO_PORTC_BASE, GPIO_PORTD_BASE, GPIO_PORTE_BASE, GPIO_PORTF_BASE, GPIO_PORTG_BASE, GPIO_PORTH_BASE };
 
-ui16 LogicRegisters[10];
+ui16 LogicRegisters[LOGIC_NUM_OF_REGISTERS];
 
 ui8 LogicRunning = false;
 
 ui8 Logic_NoOfConditions = 0;
 ui8 cosmLimit = 0;
+
+bool networkConnected = false;
+bool justBooted = true;
+tTime currentTime;
 
 //*****************************************************************************
 //
@@ -50,6 +59,7 @@ ui8 i = 0;
 
 	if ( LogicRunning )
 	{
+		ulocaltime( Time_StampNow(), &currentTime );
 		LogicCapturePortData();
 
 		for (i=0; i<LOGIC_MAX_CONDITIONS;i++)
@@ -81,7 +91,13 @@ ui8 i = 0;
 
 		if (cosmLimit) cosmLimit --;
 
+		// TODO : This should be a config setting or action
 		LogicRegisters[0] ++;
+
+		networkConnected = Ethernet_Connected();
+
+		// If we needed to action on boot up it would have been done now .
+		justBooted = false;
 	}
 }
 
@@ -96,6 +112,7 @@ bool result = false;
 ui32 param1;
 ui32 param2;
 LOGIC_EVENT_TYPE event;
+ui8 tempUi8 = 0;
 
 
 	if ( secondaryEvent )
@@ -160,11 +177,38 @@ LOGIC_EVENT_TYPE event;
 		break;
 
 		case L_EVENT_NET_DISCONNECT :
-			// TODO : How
+
+			if (! Ethernet_Connected() )
+			{
+				if ( networkConnected )
+				{
+					// We were connected not now!
+					networkConnected = false;
+					result = true;
+				}
+			}
+			else
+			{
+				networkConnected = true;
+			}
+
 		break;
 
 		case L_EVENT_NET_CONNECT :
-			// TODO : How
+
+			if ( Ethernet_Connected() )
+			{
+				if (! networkConnected )
+				{
+					// We weren't connected are now
+					networkConnected = true;
+					result = true;
+				}
+			}
+			else
+			{
+				networkConnected = false;
+			}
 		break;
 
 		case L_EVENT_TEMP_ABOVE :
@@ -203,39 +247,60 @@ LOGIC_EVENT_TYPE event;
 
 		case L_EVENT_REG_EQUAL :
 
-			if (LogicRegisters[param1] == param2)
+			if (param1 < LOGIC_NUM_OF_REGISTERS)
 			{
-				if (! LogicConditions[conditionNo].actioned)
+				if (LogicRegisters[param1] == param2)
 				{
-					result = true;
+					if (! LogicConditions[conditionNo].actioned)
+					{
+						result = true;
+					}
+				}
+				else
+				{
+					LogicConditions[conditionNo].actioned = false;
 				}
 			}
 			else
 			{
-				LogicConditions[conditionNo].actioned = false;
+				// Invalid register
 			}
 
 		break;
 
 		case L_EVENT_REG_ABOVE :
-			if (LogicRegisters[param1] > param2)
+			if (param1 < LOGIC_NUM_OF_REGISTERS)
 			{
-				result = true;
+				if (LogicRegisters[param1] > param2)
+				{
+					result = true;
+				}
+				else
+				{
+					LogicConditions[conditionNo].actioned = false;
+				}
 			}
 			else
 			{
-				LogicConditions[conditionNo].actioned = false;
+				// Invalid register
 			}
 		break;
 
 		case L_EVENT_REG_BELOW :
-			if (LogicRegisters[param1] < param2)
+			if (param1 < LOGIC_NUM_OF_REGISTERS)
 			{
-				result = true;
+				if (LogicRegisters[param1] < param2)
+				{
+					result = true;
+				}
+				else
+				{
+					LogicConditions[conditionNo].actioned = false;
+				}
 			}
 			else
 			{
-				LogicConditions[conditionNo].actioned = false;
+				// Invalid register
 			}
 		break;
 
@@ -252,9 +317,60 @@ LOGIC_EVENT_TYPE event;
 		break;
 
 		case L_EVENT_BOOT :
+			if ( justBooted )
+			{
+				result = true;
+			}
+		break;
+
+		case L_EVENT_EVERY_TICK :
+			result = true;
+		break;
+
+		case L_EVENT_DATE_AFTER :
+			if ( param1 > Time_StampNow())
+			{
+				result = true;
+			}
+		break;
+
+		case L_EVENT_DATE_BEFORE :
+			if ( param1 < Time_StampNow())
+			{
+				result = true;
+			}
+		break;
+/*
+		case L_EVENT_TIME_AFTER :
+
+			// param1 contains hours and minutes in seconds
+			// TODO : should i simplify the packing to speed up processing?
+			tempUi8 = (param1 % SECONDS_IN_AN_DAY) / SECONDS_IN_AN_HOUR;
+
+			if ( currentTime.ucHour >= tempUi8)
+			{
+				tempUi8 = (param1 % SECONDS_IN_AN_HOUR) / SECONDS_IN_AN_MIN;
+				if ( currentTime.ucMin > tempUi8 )
+				{
+					result = true;
+				}
+			}
 
 		break;
 
+		case L_EVENT_TIME_BEFORE :
+			tempUi8 = (param1 % SECONDS_IN_AN_DAY) / SECONDS_IN_AN_HOUR;
+
+			if ( currentTime.ucHour <= tempUi8)
+			{
+				tempUi8 = (param1 % SECONDS_IN_AN_HOUR) / SECONDS_IN_AN_MIN;
+				if ( currentTime.ucMin < tempUi8 )
+				{
+					result = true;
+				}
+			}
+		break;
+*/
 	}
 
 	return ( result );
@@ -338,6 +454,9 @@ void LogicStartStop ( bool start )
 
 	// -----------------------------
 
+	// Get the initial state
+	networkConnected = Ethernet_Connected();
+
 	LogicRunning = start;
 }
 
@@ -385,7 +504,7 @@ bool result = false;
 
 //*****************************************************************************
 //
-// LogicTakeAction - Compelete the supplied action
+// LogicTakeAction - Complete the supplied action
 //
 //*****************************************************************************
 void LogicTakeAction ( ui8 conditionNo )
@@ -454,13 +573,17 @@ ui32 param2 = LogicConditions[conditionNo].actionParam2;
 		break;
 
 		case L_ACTION_SEND_COSM :
+			// TODO : Temporary COSM limit to stop us sending more than one request a second
 			if (! cosmLimit )
 			{
-				//CosmGetIp();
+				CosmGetIp();
 				cosmLimit = 100;
 			}
 		break;
 
+		case L_ACTION_SERVO_POS :
+			ServoMoveToPos(param1, param2);
+		break;
 	}
 
 	LogicConditions[conditionNo].actioned = true;

@@ -28,7 +28,7 @@
 #include "driverlib/uart.h"
 #include "utils/flash_pb.h"
 #include "utils/locator.h"
-#include "utils/lwiplib.h"
+#include "lwiplib.h"
 #include "utils/ustdlib.h"
 #include "httpserver_raw/httpd.h"
 #include "config.h"
@@ -627,18 +627,12 @@ static const tConfigParameters g_sParametersFactory =
     //
     // Module Name (ucModName).
     //
-    /*
-        {
-            'S','p','l','a','s','h','B','a','s','e','0','0','0','0','0','0',
-            '0',0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0,  0,  0,  0,  0,
-        },
-        */
-        {
-    		'P','o','w','e','r',' ','M','a','g','i','c', 0, 0, 0, 0, 0,
-    		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    		0, 0, 0, 0,  0,  0,  0,  0,
-        },
+
+	{
+		'S','p','l','a','s','h','B','a','s','e', 0, 0, 0, 0, 0, 0,
+		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+		0, 0, 0, 0,  0,  0,  0,  0,
+	},
 
     //
     // Static IP address (used only if indicated in ucFlags).
@@ -742,7 +736,7 @@ const tConfigParameters *const g_psFactoryParameters = &g_sParametersFactory;
 //! careful consideration.
 //
 //*****************************************************************************
-const unsigned short g_usFirmwareVersion = 8555;
+//const unsigned short g_usFirmwareVersion = 8555;
 
 //*****************************************************************************
 //
@@ -819,7 +813,7 @@ ConfigSave(void)
     FlashPBSave((unsigned char *)&g_sWorkingDefaultParameters);
 
     //
-    // Get the pointer to the most recenly saved buffer.
+    // Get the pointer to the most recently saved buffer.
     // (should be the one we just saved).
     //
     pucBuffer = FlashPBGet();
@@ -853,13 +847,14 @@ void
 ConfigInit(void)
 {
     unsigned char *pucBuffer;
+    volatile ui16 confSize = 0;
 
     //
     // Verify that the parameter block structure matches the FLASH parameter
     // block size.
     //
     ASSERT(sizeof(tConfigParameters) == FLASH_PB_SIZE)
-
+    confSize = sizeof(tConfigParameters);
     //
     // Initialize the flash parameter block driver.
     //

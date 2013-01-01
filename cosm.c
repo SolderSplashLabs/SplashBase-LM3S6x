@@ -13,27 +13,26 @@
 #include "inc/hw_memmap.h"
 #include "inc/hw_types.h"
 #include "inc/hw_nvic.h"
-#include "utils/lwiplib.h"
+#include "lwiplib.h"
 #include "utils/locator.h"
 #include "lwip/dns.h"
-
-#include <stdio.h>
+#include "utils/ustdlib.h"
 
 #include "datatypes.h"
 
 #include "adcControl.h"
 
-#define COSM_HOST 	"api.cosm.com"
+#include "cosm.h"
+
 
 struct ip_addr CosmIpAddress;
+char CosmCommandBuffer[255];
+unsigned long CosmCommandLen;
 
-void CosmDisconnect(struct tcp_pcb *pcb);
-err_t CosmDataHasGone (void *arg, struct tcp_pcb *pcb, u16_t len);
-void CosmOnline ( void *arg, struct tcp_pcb *pcb, err_t err );
-void CosmTest(unsigned long data);
-void CosmGetIp (void);
-void CosmServerFound (const char *name, struct ip_addr *ipaddr, void *arg);
-
+// *****************************************************************************
+// CosmServerFound
+// DNS Resolve has found us an IP
+// *****************************************************************************
 void CosmServerFound (const char *name, struct ip_addr *ipaddr, void *arg)
 {
 	if ((ipaddr) && (ipaddr->addr))
@@ -47,6 +46,10 @@ void CosmServerFound (const char *name, struct ip_addr *ipaddr, void *arg)
 	}
 }
 
+// *****************************************************************************
+// CosmGetIp
+// Check to see if we need an IP for cosm
+// *****************************************************************************
 void CosmGetIp ( void )
 {
 	// resolve the DNS if needed ...
@@ -65,9 +68,10 @@ void CosmGetIp ( void )
 	}
 }
 
-char CosmCommandBuffer[255];
-unsigned long CosmCommandLen;
-
+// *****************************************************************************
+// CosmTest
+// Upload a result to COSM
+// *****************************************************************************
 void CosmTest(unsigned long data)
 {
 	struct tcp_pcb *pcb;
@@ -81,24 +85,23 @@ void CosmTest(unsigned long data)
 	adc1 = AdcGetResult(1);
 	temperature = AdcGetTemperature();
 
-	dataLen = sprintf(dataBuffer, "ADC0,%u\r\nADC1,%u\r\nTemperature,%u\r\n", adc0, adc1, temperature );
+	dataLen = usprintf(dataBuffer, "ADC0,%u\r\nADC1,%u\r\nTemperature,%u\r\n", adc0, adc1, temperature );
 	dataLen = dataLen-6;
 
 	//Authenticate
-	CosmCommandLen = sprintf(&CosmCommandBuffer[0], "PUT /v2/feeds/83864.csv HTTP/1.1\r\n");
-	CosmCommandLen += sprintf(&CosmCommandBuffer[CosmCommandLen], "Host: api.cosm.com\r\n");
-	CosmCommandLen += sprintf(&CosmCommandBuffer[CosmCommandLen], "X-ApiKey: 2mDYswqyT1UA5CCV9KrkZJhpMA6SAKw0VXNxYzNpa3pQQT0g\r\n");
-	CosmCommandLen += sprintf(&CosmCommandBuffer[CosmCommandLen], "User-Agent: SplashBase\r\n");
-	CosmCommandLen += sprintf(&CosmCommandBuffer[CosmCommandLen], "Content-Length: %u\r\n", dataLen);
-	CosmCommandLen += sprintf(&CosmCommandBuffer[CosmCommandLen], "Content-Type: text/csv\r\n");
-	CosmCommandLen += sprintf(&CosmCommandBuffer[CosmCommandLen], "Connection: close\r\n\r\n");
-	CosmCommandLen += sprintf(&CosmCommandBuffer[CosmCommandLen], "%s", dataBuffer);
-	//CosmCommandLen += sprintf(&CosmCommandBuffer[CosmCommandLen], "ADC1,%d\r\n");
+	CosmCommandLen = usprintf(&CosmCommandBuffer[0], "PUT /v2/feeds/%s.csv HTTP/1.1\r\n Host: api.cosm.com\r\nX-ApiKey: ", COMS_FEED_ID);
+	// Give them our secret key
+	CosmCommandLen += usprintf(&CosmCommandBuffer[CosmCommandLen], COSM_PRIV_KEY);
+	// Tell them how much data you wish to send
+	CosmCommandLen += usprintf(&CosmCommandBuffer[CosmCommandLen], "\r\nUser-Agent: SplashBase\r\nContent-Length: %u\r\nContent-Type: text/csv\r\n", dataLen);
+	CosmCommandLen += usprintf(&CosmCommandBuffer[CosmCommandLen], "Connection: close\r\n\r\n");
+	// Now upload the data
+	CosmCommandLen += usprintf(&CosmCommandBuffer[CosmCommandLen], "%s", dataBuffer);
 
 	// Open up a socket
 	pcb=tcp_new();
 	tcp_bind(pcb, IP_ADDR_ANY, 1223);
-	if ( ERR_OK == tcp_connect(pcb, &CosmIpAddress, 80, CosmOnline) )
+	if ( ERR_OK == tcp_connect(pcb, (struct ip_addr *)&CosmIpAddress, 80, CosmOnline) )
 	{
 		// Success!
 	}
