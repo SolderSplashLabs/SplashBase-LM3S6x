@@ -5,7 +5,9 @@
   ___) | (_) | | (_| |  __/ |   ___) | |_) | | (_| \__ \ | | |	| |__| (_| | |_) \__ \
  |____/ \___/|_|\__,_|\___|_|  |____/| .__/|_|\__,_|___/_| |_|	|_____\__,_|_.__/|___/
                                      |_|
- (C)SolderSplash Labs 2012 - www.soldersplash.co.uk - C. Matthews - R. Steel
+ (C)SolderSplash Labs 2013 - www.soldersplash.co.uk - C. Matthews - R. Steel
+
+ Redistributions of source code must retain the above copyright notice
 
 */
 
@@ -27,6 +29,7 @@
 #include "ethernetControl.h"
 #include "time.h"
 #include "cosm.h"
+#include "solderBridge/servoSolderBridge.h"
 
 #define _LOGIC_H_
 #include "logicController.h"
@@ -91,9 +94,6 @@ ui8 i = 0;
 
 		if (cosmLimit) cosmLimit --;
 
-		// TODO : This should be a config setting or action
-		LogicRegisters[0] ++;
-
 		networkConnected = Ethernet_Connected();
 
 		// If we needed to action on boot up it would have been done now .
@@ -112,7 +112,7 @@ bool result = false;
 ui32 param1;
 ui32 param2;
 LOGIC_EVENT_TYPE event;
-ui8 tempUi8 = 0;
+volatile ui8 tempUi8 = 0;
 
 
 	if ( secondaryEvent )
@@ -340,37 +340,111 @@ ui8 tempUi8 = 0;
 				result = true;
 			}
 		break;
-/*
+
 		case L_EVENT_TIME_AFTER :
 
-			// param1 contains hours and minutes in seconds
-			// TODO : should i simplify the packing to speed up processing?
-			tempUi8 = (param1 % SECONDS_IN_AN_DAY) / SECONDS_IN_AN_HOUR;
+			// Param1 is packed as follows
+			// MSB day of week, hour, LSB minutes, second
 
-			if ( currentTime.ucHour >= tempUi8)
+			if ( param1 & BIT31 )
 			{
-				tempUi8 = (param1 % SECONDS_IN_AN_HOUR) / SECONDS_IN_AN_MIN;
-				if ( currentTime.ucMin > tempUi8 )
+				// Don't care about the week day, active every day
+				tempUi8 = true;
+			}
+			else
+			{
+				// TODO : either have a single day bit set or a bit mask to pick days that this is active on
+				tempUi8 = (param1 >> 24);
+				if ( tempUi8 & (0x01 << currentTime.ucWday) )
+				{
+					// it's the current day
+					tempUi8 = true;
+				}
+				else if ((0x01 << currentTime.ucWday) > tempUi8)
+				{
+					// its after this day in the week
+					result = true;
+				}
+				else
+				{
+					tempUi8 = false;
+				}
+			}
+
+			if ((tempUi8) && (!result))
+			{
+				// Take the hours from the param
+				tempUi8 = (param1 >> 16);
+
+				if ( currentTime.ucHour > tempUi8)
 				{
 					result = true;
+				}
+				else if ( currentTime.ucHour == tempUi8)
+				{
+					// get the minutes
+					tempUi8 = param1 >> 8;
+					if ( currentTime.ucMin >= tempUi8 )
+					{
+						result = true;
+					}
 				}
 			}
 
 		break;
 
 		case L_EVENT_TIME_BEFORE :
-			tempUi8 = (param1 % SECONDS_IN_AN_DAY) / SECONDS_IN_AN_HOUR;
 
-			if ( currentTime.ucHour <= tempUi8)
+			// Param1 is packed as follows
+			// MSB day of week, hour, LSB minutes, second
+
+			if ( param1 & BIT31 )
 			{
-				tempUi8 = (param1 % SECONDS_IN_AN_HOUR) / SECONDS_IN_AN_MIN;
-				if ( currentTime.ucMin < tempUi8 )
+				// Don't care about the week day, active every day
+				tempUi8 = true;
+			}
+			else
+			{
+				// TODO : either have a single day bit set or a bit mask to pick days that this is active on
+				tempUi8 = (param1 >> 24);
+				if ( tempUi8 & (0x01 << currentTime.ucWday) )
+				{
+					// it's the current day
+					tempUi8 = true;
+				}
+				else if ((0x01 << currentTime.ucWday) < tempUi8)
+				{
+					// its before this day, so a valid condition
+					result = true;
+				}
+				else
+				{
+					tempUi8 = false;
+				}
+			}
+
+			if ((tempUi8) && (!result))
+			{
+				// Take the hours from the param
+				tempUi8 = (param1 >> 16);
+
+				if ( currentTime.ucHour < tempUi8)
 				{
 					result = true;
 				}
+				else if ( currentTime.ucHour == tempUi8)
+				{
+					// get the minutes
+					tempUi8 = param1 >> 8;
+					if ( currentTime.ucMin < tempUi8 )
+					{
+						result = true;
+					}
+				}
 			}
+
 		break;
-*/
+
 	}
 
 	return ( result );

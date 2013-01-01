@@ -27,6 +27,8 @@
 
 #include "time.h"
 
+// TODO : need to store an hour offset for different regions, if the NTP response is not regionalised
+
 ui32 Uptime = 0;
 ui32 UnixTime = 0;
 ui32 MsTimer = 0;
@@ -48,6 +50,8 @@ void Time_Task ( void )
 		UnixTime++;
 		Uptime++;
 	}
+
+	// TODO : Refresh the time via SNTP every day/week
 }
 
 

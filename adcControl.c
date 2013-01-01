@@ -5,9 +5,12 @@
   ___) | (_) | | (_| |  __/ |   ___) | |_) | | (_| \__ \ | | |	| |__| (_| | |_) \__ \
  |____/ \___/|_|\__,_|\___|_|  |____/| .__/|_|\__,_|___/_| |_|	|_____\__,_|_.__/|___/
                                      |_|
- (C)SolderSplash Labs 2012 - www.soldersplash.co.uk - C. Matthews - R. Steel
+ (C)SolderSplash Labs 2013 - www.soldersplash.co.uk - C. Matthews - R. Steel
+
+ Redistributions of source code must retain the above copyright notice
 
 */
+
 #include "inc/hw_ints.h"
 #include "inc/hw_nvic.h"
 #include "inc/hw_memmap.h"

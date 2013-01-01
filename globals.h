@@ -5,8 +5,9 @@
   ___) | (_) | | (_| |  __/ |   ___) | |_) | | (_| \__ \ | | |	| |__| (_| | |_) \__ \
  |____/ \___/|_|\__,_|\___|_|  |____/| .__/|_|\__,_|___/_| |_|	|_____\__,_|_.__/|___/
                                      |_|
- (C)SolderSplash Labs 2012 - www.soldersplash.co.uk - C. Matthews - R. Steel
+ (C)SolderSplash Labs 2013 - www.soldersplash.co.uk - C. Matthews - R. Steel
 
+ Redistributions of source code must retain the above copyright notice
 
  Globals should generally be avoided and data exchanged between software modules.
  But for key defines it makes sense
@@ -28,4 +29,4 @@
 // HTTP Enabled?
 //#define HTTP_ENABLED
 // UPNP Enabled?
-#define UPNP_ENABLED
+//#define UPNP_ENABLED

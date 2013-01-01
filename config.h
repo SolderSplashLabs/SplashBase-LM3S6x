@@ -269,11 +269,13 @@ typedef struct
 
     unsigned char SolderBridgeList[5];
 
+    signed char   timeHourOffset;
+
     //
     //! Padding to ensure the whole structure is 256 bytes long.
     //
-    //unsigned char ucReserved2[39];
-    unsigned char ucReserved2[295];
+    //unsigned char ucReserved2[38];
+    unsigned char ucReserved2[806];
 }
 tConfigParameters;
 
@@ -308,7 +310,7 @@ tConfigParameters;
 //! and should be large enough to contain the tConfigParameters structure.
 //
 //*****************************************************************************
-#define FLASH_PB_SIZE           512
+#define FLASH_PB_SIZE           1024
 
 //*****************************************************************************
 //

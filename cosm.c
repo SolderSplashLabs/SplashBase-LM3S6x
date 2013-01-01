@@ -42,7 +42,7 @@ void CosmServerFound (const char *name, struct ip_addr *ipaddr, void *arg)
 	}
 	else
 	{
-
+		// No Ip found
 	}
 }
 

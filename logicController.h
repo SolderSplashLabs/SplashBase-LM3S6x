@@ -1,3 +1,15 @@
+/*
+  ____        _     _           ____        _           _		 _          _
+ / ___|  ___ | | __| | ___ _ __/ ___| _ __ | | __ _ ___| |__	| |    __ _| |__  ___
+ \___ \ / _ \| |/ _` |/ _ \ '__\___ \| '_ \| |/ _` / __| '_ \	| |   / _` | '_ \/ __|
+  ___) | (_) | | (_| |  __/ |   ___) | |_) | | (_| \__ \ | | |	| |__| (_| | |_) \__ \
+ |____/ \___/|_|\__,_|\___|_|  |____/| .__/|_|\__,_|___/_| |_|	|_____\__,_|_.__/|___/
+                                     |_|
+ (C)SolderSplash Labs 2013 - www.soldersplash.co.uk - C. Matthews - R. Steel
+
+ Redistributions of source code must retain the above copyright notice
+
+*/
 
 #ifdef _LOGIC_H_
 
@@ -52,6 +64,10 @@ typedef struct LOGIC_CONDITION
 	LOGIC_EVENT_TYPE andEventType;		// if this event is set to somthing other than Invalid, this condition must also be satisfied before executing the action
 	LOGIC_ACTION_TYPE actionType;
 
+	ui8 active:1;					// This condition is active
+	ui8 actioned:1;					// Condition has been action, clear event condition is no longer true
+	ui8 spare:6;
+
 	ui32 eventParam1;
 	ui32 eventParam2;
 	ui32 andEventParam1;
@@ -59,13 +75,10 @@ typedef struct LOGIC_CONDITION
 	ui32 actionParam1;
 	ui32 actionParam2;
 
-	ui8 active:1;					// This condition is active
-	ui8 actioned:1;					// Condition has been action, clear event condition is no longer true
-
 } LOGIC_CONDITION;
 
-#define LOGIC_MAX_CONDITIONS	10
-#define GPIO_PORTS_MAX 7
+#define LOGIC_MAX_CONDITIONS	20
+#define GPIO_PORTS_MAX 			7
 
 // a cache of the GPIO Ports, that are processed as a single snapshot
 ui32 LogicGpioData[ GPIO_PORTS_MAX ];
@@ -81,4 +94,6 @@ bool LogicCheckPinHigh ( ui8 conditionNo );
 void LogicCapturePortData ( void );
 bool LogicProcessCondition ( ui8 conditionNo, bool secondaryEvent );
 void LogicInsertNewCondition (ui8 position, ui8 *newCondition );
+void LogicStartStop ( bool start );
+
 
