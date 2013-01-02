@@ -23,6 +23,8 @@
 
 #include "datatypes.h"
 
+#include "config.h"
+
 #include "adcControl.h"
 #include "pwmControl.h"
 #include "relayControl.h"
@@ -36,7 +38,8 @@
 
 
 // TODO : tidy up
-LOGIC_CONDITION LogicConditions[LOGIC_MAX_CONDITIONS];
+//LOGIC_CONDITION LogicConditions[LOGIC_MAX_CONDITIONS];
+LOGIC_CONDITION *LogicConditions;
 
 ui32 GPIO_REGISTERS[] = { GPIO_PORTA_BASE, GPIO_PORTB_BASE, GPIO_PORTC_BASE, GPIO_PORTD_BASE, GPIO_PORTE_BASE, GPIO_PORTF_BASE, GPIO_PORTG_BASE, GPIO_PORTH_BASE };
 
@@ -48,8 +51,12 @@ ui8 Logic_NoOfConditions = 0;
 ui8 cosmLimit = 0;
 
 bool networkConnected = false;
+bool prevNetworkConnected = false;
 bool justBooted = true;
 tTime currentTime;
+
+// TODO : Add function to return the state of this flag, so user can tell if changes to the logic controller have been saved
+bool LogicCondInSync = TRUE;
 
 //*****************************************************************************
 //
@@ -64,6 +71,8 @@ ui8 i = 0;
 	{
 		ulocaltime( Time_StampNow(), &currentTime );
 		LogicCapturePortData();
+
+		networkConnected = Ethernet_Connected();
 
 		for (i=0; i<LOGIC_MAX_CONDITIONS;i++)
 		{
@@ -94,11 +103,25 @@ ui8 i = 0;
 
 		if (cosmLimit) cosmLimit --;
 
-		networkConnected = Ethernet_Connected();
+		prevNetworkConnected = networkConnected;
 
 		// If we needed to action on boot up it would have been done now .
 		justBooted = false;
 	}
+}
+
+
+//*****************************************************************************
+//
+// LogicSaveConditions
+// Saves the logic conditions to flash so that they are used upon power up
+//
+//*****************************************************************************
+void LogicSaveConditions ( void )
+{
+	memcpy(	g_sWorkingDefaultParameters.LogicConditionsBuffer, g_sParameters.LogicConditionsBuffer, sizeof(g_sWorkingDefaultParameters.LogicConditionsBuffer));
+
+	LogicCondInSync = TRUE;
 }
 
 //*****************************************************************************
@@ -178,37 +201,33 @@ volatile ui8 tempUi8 = 0;
 
 		case L_EVENT_NET_DISCONNECT :
 
-			if (! Ethernet_Connected() )
+			// Only fired once, upon disconnect
+			// TODO : Should it be constant?
+			if (! networkConnected )
 			{
-				if ( networkConnected )
+				if (prevNetworkConnected != networkConnected)
 				{
 					// We were connected not now!
-					networkConnected = false;
 					result = true;
 				}
-			}
-			else
-			{
-				networkConnected = true;
 			}
 
 		break;
 
 		case L_EVENT_NET_CONNECT :
 
-			if ( Ethernet_Connected() )
+			// Only fired once, upon Connect
+			// TODO : Should it be constant?
+
+			if ( networkConnected )
 			{
-				if (! networkConnected )
+				if (prevNetworkConnected != networkConnected)
 				{
-					// We weren't connected are now
-					networkConnected = true;
+					// We were connected not now!
 					result = true;
 				}
 			}
-			else
-			{
-				networkConnected = false;
-			}
+
 		break;
 
 		case L_EVENT_TEMP_ABOVE :
@@ -528,6 +547,9 @@ void LogicStartStop ( bool start )
 
 	// -----------------------------
 
+	// Set up the conditions from the config
+	LogicConditions = g_sParameters.LogicConditionsBuffer;
+
 	// Get the initial state
 	networkConnected = Ethernet_Connected();
 
@@ -728,5 +750,7 @@ void LogicInsertNewCondition (ui8 position, ui8 *newCondition )
 
 		LogicConditions[position].active = true;
 		LogicConditions[position].actioned = false;
+
+		LogicCondInSync = FALSE;
 	}
 }

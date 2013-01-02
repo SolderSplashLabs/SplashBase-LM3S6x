@@ -27,10 +27,10 @@
 #include "datatypes.h"
 #include "globals.h"
 
+#include "logicController.h"
 #include "config.h"
 
 #include "ethernetControl.h"
-#include "logicController.h"
 #include "adcControl.h"
 #include "colourModes.h"
 #include "pwmControl.h"
@@ -110,6 +110,11 @@ void InitialiseHW ( void )
 	pwmInit();
 	relayInit();
 
+	// Grab the Config from Flash
+	ConfigInit();
+
+	relayInit();
+
 	// Note (From the DriverLib) :
 	// It takes five clock cycles after the write to enable a peripheral
 	// before the the peripheral is actually enabled.  During this time, attempts
@@ -144,9 +149,6 @@ int main(void)
 	volatile ui8 tmpMacAddr[8];
 
 	InitialiseHW();
-
-	// Grab the Config from Flash
-	ConfigInit();
 
 	Ethernet_GetMacAddress((ui8 *)&tmpMacAddr[0]);
 

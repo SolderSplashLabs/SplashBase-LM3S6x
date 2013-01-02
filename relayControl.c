@@ -7,7 +7,10 @@
                                      |_|
  (C)SolderSplash Labs 2013 - www.soldersplash.co.uk - C. Matthews - R. Steel
 
+ Redistributions of source code must retain the above copyright notice
+
 */
+
 
 #include "inc/hw_ints.h"
 #include "inc/hw_memmap.h"

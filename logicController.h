@@ -10,11 +10,10 @@
  Redistributions of source code must retain the above copyright notice
 
 */
-
-#ifdef _LOGIC_H_
-
 // We have a number of "Registers" that actions can effect and can then in turn generate new events
 #define LOGIC_NUM_OF_REGISTERS	10
+#define LOGIC_MAX_CONDITIONS	20
+#define GPIO_PORTS_MAX 			7
 
 typedef enum LOGIC_EVENT_TYPE
 {
@@ -77,8 +76,7 @@ typedef struct LOGIC_CONDITION
 
 } LOGIC_CONDITION;
 
-#define LOGIC_MAX_CONDITIONS	20
-#define GPIO_PORTS_MAX 			7
+#ifdef _LOGIC_H_
 
 // a cache of the GPIO Ports, that are processed as a single snapshot
 ui32 LogicGpioData[ GPIO_PORTS_MAX ];

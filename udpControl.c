@@ -427,6 +427,9 @@ ui8 replyWithStatus = 0;
 				break;
 			}
 
+			// TODO : TEMP pls remove
+			LogicSaveConditions();
+
 			ConfigSave();
 
 		break;

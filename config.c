@@ -31,15 +31,16 @@
 #include "lwiplib.h"
 #include "utils/ustdlib.h"
 #include "httpserver_raw/httpd.h"
+
+#include "datatypes.h"
+#include "globals.h"
+
+#include "logicController.h"
 #include "config.h"
 
 #include "serial.h"
 #include "telnet.h"
 #include "upnp.h"
-
-#include "datatypes.h"
-#include "globals.h"
-
 #include "udpControl.h"
 #include "colourModes.h"
 

@@ -99,6 +99,7 @@ void lwIPHostTimerHandler (void)
 	if(bLinkStatusUp != ethernetConnected)
 	{
 		// Network Connection status has changed
+		ethernetConnected = bLinkStatusUp;
 	}
 
 	ipAddress = lwIPLocalIPAddrGet();
@@ -107,7 +108,7 @@ void lwIPHostTimerHandler (void)
 	{
 		if (! askedForTime)
 		{
-			SntpGetTime();
+			//SntpGetTime();
 			askedForTime = true;
 		}
 	}

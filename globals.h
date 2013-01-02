@@ -26,7 +26,9 @@
 #define SPLASHBASE_BOARD_REV	2
 //#define SPLASHBASE_BOARD_REV	1
 
-// HTTP Enabled?
+// Define to enable HTTP
 //#define HTTP_ENABLED
-// UPNP Enabled?
+
+// Define to enable UPNP
 //#define UPNP_ENABLED
+

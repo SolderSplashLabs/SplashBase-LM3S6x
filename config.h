@@ -269,13 +269,17 @@ typedef struct
 
     unsigned char SolderBridgeList[5];
 
-    signed char   timeHourOffset;
+    // Can be made shorter, it's a long to stop the structure packing
+    signed long   timeOffset;
+
+    // 20x28 = 560 Bytes
+    unsigned char LogicConditionsBuffer[ 560 ];
+    //LOGIC_CONDITION LogicConditions[LOGIC_MAX_CONDITIONS];
 
     //
     //! Padding to ensure the whole structure is 256 bytes long.
     //
-    //unsigned char ucReserved2[38];
-    unsigned char ucReserved2[806];
+    unsigned char ucReserved2[247];
 }
 tConfigParameters;
 
