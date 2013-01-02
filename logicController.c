@@ -110,6 +110,16 @@ ui8 i = 0;
 	}
 }
 
+//*****************************************************************************
+//
+// LogicSaveConditions
+// Saves the logic conditions to flash so that they are used upon power up
+//
+//*****************************************************************************
+bool LogicAreCondSaved ( void )
+{
+	return(LogicCondInSync);
+}
 
 //*****************************************************************************
 //
@@ -751,6 +761,6 @@ void LogicInsertNewCondition (ui8 position, ui8 *newCondition )
 		LogicConditions[position].active = true;
 		LogicConditions[position].actioned = false;
 
-		LogicCondInSync = FALSE;
+		LogicCondInSync = false;
 	}
 }
