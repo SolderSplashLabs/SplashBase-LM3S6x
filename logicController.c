@@ -56,7 +56,7 @@ bool justBooted = true;
 tTime currentTime;
 
 // TODO : Add function to return the state of this flag, so user can tell if changes to the logic controller have been saved
-bool LogicCondInSync = TRUE;
+bool LogicCondInSync = true;
 
 //*****************************************************************************
 //
@@ -131,7 +131,7 @@ void LogicSaveConditions ( void )
 {
 	memcpy(	g_sWorkingDefaultParameters.LogicConditionsBuffer, g_sParameters.LogicConditionsBuffer, sizeof(g_sWorkingDefaultParameters.LogicConditionsBuffer));
 
-	LogicCondInSync = TRUE;
+	LogicCondInSync = true;
 }
 
 //*****************************************************************************
