@@ -26,6 +26,11 @@
 	</natures>
 	<linkedResources>
 		<link>
+			<name>utils/cmdline.c</name>
+			<type>1</type>
+			<locationURI>STELLARISWARE_DIR/utils/cmdline.c</locationURI>
+		</link>
+		<link>
 			<name>utils/flash_pb.c</name>
 			<type>1</type>
 			<locationURI>STELLARISWARE_DIR/utils/flash_pb.c</locationURI>

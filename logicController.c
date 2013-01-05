@@ -474,6 +474,11 @@ volatile ui8 tempUi8 = 0;
 
 		break;
 
+		case L_EVENT_NET_MSG :
+			// Network message to trigger action
+			// TODO : this could supply a value and if it matches the param then triggers the saved action?
+		break;
+
 	}
 
 	return ( result );

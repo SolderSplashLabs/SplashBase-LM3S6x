@@ -13,16 +13,12 @@
 
 #include "inc/hw_ints.h"
 #include "inc/hw_memmap.h"
-//#include "inc/hw_nvic.h"
 #include "inc/hw_types.h"
 #include "driverlib/gpio.h"
 #include "driverlib/sysctl.h"
 #include "driverlib/systick.h"
-#include "inc/lm3s6432.h"
-#include "datatypes.h"
 
-#define RELAYCONTROL
-#include "relayControl.h"
+#include "datatypes.h"
 
 // NOTE : Could have log entries sent out over UDP as well?
 

@@ -1063,7 +1063,9 @@ ConfigPreUpdateIPAddress(void)
     //
     // Stop UPnP and remove ourselves from the network.
     //
+#ifdef UPNP_ENABLED
     UPnPStop();
+#endif
 }
 
 //*****************************************************************************
@@ -1096,11 +1098,12 @@ ConfigUpdateIPAddress(void)
     {
         lwIPNetworkConfigChange(0, 0, 0, IPADDR_USE_DHCP);
     }
-
+#ifdef UPNP_ENABLED
     //
     // Restart UPnP discovery.
     //
     UPnPStart();
+#endif
 }
 
 //*****************************************************************************
@@ -2318,10 +2321,12 @@ ConfigMiscCGIHandler(int iIndex, int iNumParams, char *pcParam[],
         if((unsigned short int)lValue !=
            g_sWorkingDefaultParameters.usLocationURLPort)
         {
+#ifdef UPNP_ENABLED
             //
             // Shut down UPnP temporarily.
             //
             UPnPStop();
+#endif
 
             //
             // Update our working parameters and the default set.
@@ -2330,11 +2335,12 @@ ConfigMiscCGIHandler(int iIndex, int iNumParams, char *pcParam[],
             g_sWorkingDefaultParameters.usLocationURLPort =
                 (unsigned short int)lValue;
 
+#ifdef UPNP_ENABLED
             //
             // Restart UPnP with the new location port number.
             //
             UPnPStart();
-
+#endif
             //
             // Remember that something changed.
             //

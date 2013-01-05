@@ -22,7 +22,7 @@
 #define SW_REV_MAJOR 			0
 #define SW_REV_MINOR			6
 
-// Revsision of base board the software is running on
+// Revision of base board the software is running on
 #define SPLASHBASE_BOARD_REV	2
 //#define SPLASHBASE_BOARD_REV	1
 
@@ -31,4 +31,7 @@
 
 // Define to enable UPNP
 //#define UPNP_ENABLED
+// NOTE : You need to define LWIP_UPNP in lwipopts as well
+
+#define SERIAL_ENABLED
 

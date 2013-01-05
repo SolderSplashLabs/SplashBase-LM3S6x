@@ -28,13 +28,17 @@
 #include "datatypes.h"
 #include "globals.h"
 
+#include "config.h"
+
 #include "25AA02E48.h"
 #include "sntpClient.h"
 #include "ethernetControl.h"
 
-bool ethernetConnected = false;
-ui32 ipAddress = 0;
+bool EthernetConnected = false;
+bool DhcpFail = false;
+ui32 IpAddress = 0;
 volatile ui8 macAddr[8];
+
 
 // *****************************************************************************
 // Ethernet_Task
@@ -52,8 +56,27 @@ void Ethernet_Task ( void )
 // *****************************************************************************
 ui32 Ethernet_GetIp ( void )
 {
-	return ( ipAddress );
+	return ( IpAddress );
 }
+
+// *****************************************************************************
+// Ethernet_GetGatewayIp
+//
+// *****************************************************************************
+ui32 Ethernet_GetGatewayIp ( void )
+{
+	return ( lwIPLocalGWAddrGet() );
+}
+
+// *****************************************************************************
+// Ethernet_GetNetmask
+//
+// *****************************************************************************
+ui32 Ethernet_GetNetmask ( void )
+{
+	return ( lwIPLocalNetMaskGet() );
+}
+
 
 // *****************************************************************************
 // Ethernet_GetMacAddress
@@ -73,7 +96,7 @@ void Ethernet_GetMacAddress ( ui8 *pBuf )
 // *****************************************************************************
 bool Ethernet_Connected( void )
 {
-	return (ethernetConnected);
+	return (EthernetConnected);
 }
 
 //*****************************************************************************
@@ -96,20 +119,31 @@ void lwIPHostTimerHandler (void)
 
     bLinkStatusUp = GPIOPinRead(GPIO_PORTF_BASE, GPIO_PIN_3) ? false : true;
 
-	if(bLinkStatusUp != ethernetConnected)
+	if(bLinkStatusUp != EthernetConnected)
 	{
 		// Network Connection status has changed
-		ethernetConnected = bLinkStatusUp;
+		EthernetConnected = bLinkStatusUp;
 	}
 
-	ipAddress = lwIPLocalIPAddrGet();
+	IpAddress = lwIPLocalIPAddrGet();
 
-	if ( ipAddress )
+	if ((IpAddress) && (EthernetConnected))
 	{
-		if (! askedForTime)
+		if ((IpAddress & 0x000000FF) == 169 )
 		{
-			//SntpGetTime();
-			askedForTime = true;
+			// we have a 169. ip which means DHCP has failed
+			DhcpFail = true;
+		}
+		else
+		{
+			DhcpFail = false;
+
+			// We have an IP, thats not a default local only
+			if (! askedForTime)
+			{
+				//SntpGetTime();
+				askedForTime = true;
+			}
 		}
 	}
 
@@ -130,7 +164,17 @@ void Ethernet_Init ( void )
 	Eeprom_SpiInit();
 
 	// ReadMacAddr is a blocking call
-	Eeprom_ReadMacAddr((ui8 *)&macAddr[0]);
+	if (! Eeprom_ReadMacAddr((ui8 *)&macAddr[0]) )
+	{
+		// MAC address read failed, default it
+		// NOTE : This could be due to an add on messing with the SPI
+		macAddr[0] = 0x00;
+		macAddr[1] = 0xAA;
+		macAddr[2] = 0xAA;
+		macAddr[3] = 0x00;
+		macAddr[4] = 0x00;
+		macAddr[5] = 0x01;
+	}
 
 	//
 	// Enable Port F Ethernet LEDs.
@@ -143,16 +187,16 @@ void Ethernet_Init ( void )
 	// Set the link status based on the LED0 signal (which defaults to link
 	// status in the PHY).
 	//
-	ethernetConnected = GPIOPinRead(GPIO_PORTF_BASE, GPIO_PIN_3) ? false : true;
+	EthernetConnected = GPIOPinRead(GPIO_PORTF_BASE, GPIO_PIN_3) ? false : true;
 
 	// Init the lwip stack
-	/*
-	lwIPInit(pucMACAddr, g_sParameters.ulStaticIP, g_sParameters.ulSubnetMask,
+
+	lwIPInit(macAddr, g_sParameters.ulStaticIP, g_sParameters.ulSubnetMask,
 	             g_sParameters.ulGatewayIP, ((g_sParameters.ucFlags &
 	             CONFIG_FLAG_STATICIP) ? IPADDR_USE_STATIC : IPADDR_USE_DHCP));
-	             */
 
-	lwIPInit((const unsigned char*)macAddr, 0, 0, 0, IPADDR_USE_DHCP);
+
+	//lwIPInit((const unsigned char*)macAddr, 0, 0, 0, IPADDR_USE_DHCP);
 
 	SntpInit();
 }

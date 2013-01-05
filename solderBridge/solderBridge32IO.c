@@ -139,7 +139,7 @@ bool result = false;
 	if ( port < SBIO_MAX )
 	{
 		// TODO : Im tired, this needs set only the bits in the Out that are masked.
-		SBIO_PortOut[port] |= value;
+		SBIO_PortOut[port] |= bitMask;
 
 		// trigger i2c update
 
@@ -160,7 +160,7 @@ bool result = false;
 	if ( port < SBIO_MAX )
 	{
 		// TODO : Im tired, this needs set only the bits in the Out that are masked.
-		SBIO_PortOut[port] &= ~value;
+		SBIO_PortOut[port] &= ~bitMask;
 
 		// trigger i2c update
 

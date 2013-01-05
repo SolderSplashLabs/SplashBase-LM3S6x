@@ -38,6 +38,7 @@
 #include "udpControl.h"
 #include "solderBridge/solderBridgeSpi.h"
 #include "time.h"
+#include "serialControl.h"
 
 // *****************************************************************************
 // SysTickIntHandler
@@ -47,6 +48,8 @@ void SysTickIntHandler(void)
 {
 	// Keep track of time!
 	Time_Task();
+
+	Serial_Task();
 
 	ColourModeTick();
 
@@ -68,6 +71,7 @@ void IdleTasks ( void )
 {
 	// Tasks performed in the Idle task can and will be interrupted so only tasks that can handle
 	// that can be performed. they may also be starved if the scheduled tasks are busy.
+
 }
 
 
@@ -106,6 +110,31 @@ void InitialiseHW ( void )
 	IntPrioritySet(INT_ETH, 0x20);
 	IntPrioritySet(FAULT_SYSTICK, 0x40);
 
+	//
+	// Enable the peripherals that should continue to run when the processor
+	// is sleeping.
+	//
+	SysCtlPeripheralSleepEnable(SYSCTL_PERIPH_GPIOA);
+	SysCtlPeripheralSleepEnable(SYSCTL_PERIPH_GPIOB);
+	SysCtlPeripheralSleepEnable(SYSCTL_PERIPH_GPIOC);
+	SysCtlPeripheralSleepEnable(SYSCTL_PERIPH_GPIOD);
+	SysCtlPeripheralSleepEnable(SYSCTL_PERIPH_GPIOE);
+	SysCtlPeripheralSleepEnable(SYSCTL_PERIPH_GPIOF);
+	SysCtlPeripheralSleepEnable(SYSCTL_PERIPH_GPIOG);
+	SysCtlPeripheralSleepEnable(SYSCTL_PERIPH_UART0);
+	SysCtlPeripheralSleepEnable(SYSCTL_PERIPH_UART1);
+	SysCtlPeripheralSleepEnable(SYSCTL_PERIPH_ETH);
+
+	SysCtlPeripheralSleepEnable(SYSCTL_PERIPH_TIMER0);
+	SysCtlPeripheralSleepEnable(SYSCTL_PERIPH_TIMER1);
+	SysCtlPeripheralSleepEnable(SYSCTL_PERIPH_TIMER2);
+
+    //
+    // Enable peripheral clock gating.  Note that this is required in order to
+    // measure the the processor usage.
+    //
+    SysCtlPeripheralClockGating(true);
+
 	AdcInit();
 	pwmInit();
 	relayInit();
@@ -115,12 +144,35 @@ void InitialiseHW ( void )
 
 	relayInit();
 
+	//usrand(0x23482937);
+
 	// Note (From the DriverLib) :
 	// It takes five clock cycles after the write to enable a peripheral
 	// before the the peripheral is actually enabled.  During this time, attempts
 	// to access the peripheral result in a bus fault.  Care should be taken
 	// to ensure that the peripheral is not accessed during this brief time
 	// period.
+
+	#ifdef SERIAL_ENABLED
+		//SerialInit();
+
+		//
+		// Configure the Port 0 pins appropriately.
+		//
+		GPIOPinTypeUART(PIN_U0RX_PORT, PIN_U0RX_PIN);
+		GPIOPinTypeUART(PIN_U0TX_PORT, PIN_U0TX_PIN);
+
+		//
+		// Configure the Port 1 pins appropriately.
+		//
+
+		GPIOPinTypeUART(PIN_U1RX_PORT, PIN_U1RX_PIN);
+		GPIOPinTypeUART(PIN_U1TX_PORT, PIN_U1TX_PIN);
+
+		UARTStdioInit(1);
+
+		UARTprintf("Booting\r");
+		#endif
 
 	#ifdef UPNP_ENABLED
 		UPnPInit();
@@ -145,6 +197,7 @@ void InitialiseHW ( void )
 // Start of the C Code
 // *****************************************************************************
 int main(void)
+
 {
 	volatile ui8 tmpMacAddr[8];
 

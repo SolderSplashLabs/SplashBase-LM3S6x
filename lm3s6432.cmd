@@ -8,9 +8,14 @@
 
 --retain=g_pfnVectors
 
+//#define APP_BASE 0x00001000
+#define APP_BASE 0x00000000
+
 MEMORY
 {
-    FLASH (RX) : origin = 0x00000000, length = 0x00018000
+    //FLASH (RX) : origin = 0x00000000, length = 0x00018000
+    // 2048 has been assigned to the config params
+    FLASH (RX) : origin = APP_BASE, length = 0x00017800
     SRAM (RWX) : origin = 0x20000000, length = 0x00008000
 }
 
@@ -28,7 +33,7 @@ MEMORY
 
 SECTIONS
 {
-    .intvecs:   > 0x00000000
+    .intvecs:   > APP_BASE
     .text   :   > FLASH
     .const  :   > FLASH
     .cinit  :   > FLASH
@@ -41,4 +46,4 @@ SECTIONS
     .stack  :   > SRAM
 }
 
-__STACK_TOP = __stack + 4096;
+__STACK_TOP = __stack + 2048;

@@ -22,6 +22,8 @@
 #include "inc/lm3s6432.h"
 #include "datatypes.h"
 
+#include "globals.h"
+
 #define RELAYCONTROL
 #include "relayControl.h"
 
