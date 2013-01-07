@@ -22,10 +22,19 @@
 #include "driverlib/interrupt.h"
 #include "driverlib/sysctl.h"
 #include "driverlib/systick.h"
+#include "utils/uartstdio.h"				// Slightly modified TI version
+
+#include "globals.h"
+
+#ifdef UPNP_ENABLED
 #include "upnp.h"
+#endif
+
+#ifdef HTTP_ENABLED
+#include "httpserver_raw/httpd.h"
+#endif
 
 #include "datatypes.h"
-#include "globals.h"
 
 #include "logicController.h"
 #include "config.h"
@@ -169,17 +178,16 @@ void InitialiseHW ( void )
 		GPIOPinTypeUART(PIN_U1RX_PORT, PIN_U1RX_PIN);
 		GPIOPinTypeUART(PIN_U1TX_PORT, PIN_U1TX_PIN);
 
-		UARTStdioInit(1);
+		UARTStdioInit(SERIAL_UART);
 
-		UARTprintf("Booting\r");
-		#endif
+	#endif
 
 	#ifdef UPNP_ENABLED
 		UPnPInit();
 	#endif
 
 	#ifdef HTTP_ENABLED
-		HttpInit();
+		httpd_init();
 	#endif
 
 	Ethernet_Init();

@@ -563,7 +563,7 @@ void LogicStartStop ( bool start )
 	// -----------------------------
 
 	// Set up the conditions from the config
-	LogicConditions = g_sParameters.LogicConditionsBuffer;
+	LogicConditions = (LOGIC_CONDITION *)g_sParameters.LogicConditionsBuffer;
 
 	// Get the initial state
 	networkConnected = Ethernet_Connected();

@@ -22,6 +22,10 @@
 //
 //*****************************************************************************
 
+#include "globals.h"
+
+#ifdef UPNP_ENABLED
+
 #include <string.h>
 #include "inc/hw_memmap.h"
 #include "inc/hw_types.h"
@@ -1058,6 +1062,8 @@ UPnPHandler(unsigned long ulTimeMS)
         }
     }
 }
+
+#endif
 
 //*****************************************************************************
 //

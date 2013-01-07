@@ -40,7 +40,11 @@
 
 #include "serial.h"
 #include "telnet.h"
+
+#ifdef UPNP_ENABLED
 #include "upnp.h"
+#endif
+
 #include "udpControl.h"
 #include "colourModes.h"
 

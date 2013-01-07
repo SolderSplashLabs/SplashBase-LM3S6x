@@ -30,8 +30,9 @@
 //#define HTTP_ENABLED
 
 // Define to enable UPNP
-//#define UPNP_ENABLED
+#define UPNP_ENABLED
 // NOTE : You need to define LWIP_UPNP in lwipopts as well
 
 #define SERIAL_ENABLED
+#define SERIAL_UART			1
 

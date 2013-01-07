@@ -19,6 +19,7 @@
 #include "utils/uartstdio.h"
 #include "utils/cmdline.h"
 
+#include "config.h"
 #include "datatypes.h"
 #include "globals.h"
 
@@ -50,6 +51,9 @@ extern int CMD_help (int argc, char **argv);
 extern int CMD_NotImplemented (int argc, char **argv);
 extern int CMD_Reboot (int argc, char **argv);
 extern int CMD_Date (int argc, char **argv);
+extern int CMD_Relay (int argc, char **argv);
+extern int CMD_Adcs (int argc, char **argv);
+extern int CMD_Factory (int argc, char **argv);
 
 extern int CMD_rand (int argc, char **argv);
 extern int CMD_intensity (int argc, char **argv);
@@ -75,13 +79,20 @@ char WELCOME_MSG[] = "\n\
 tCmdLineEntry g_sCmdTable[] =
 {
     {"help",     	CMD_help,      			" : Display list of commands" },
+    {"?",     		CMD_help,      			" : Display list of commands" },
     {"setname",  	CMD_NotImplemented,     " : Set SplashBase name"},
-    {"ipconfig", 	CMD_ipconfig,  			" : Get network config"},
-    {"date",      	CMD_Date,   			" : Display the date and time"},
-    {"updatetime",  CMD_NotImplemented,    	" : Fetch the time from SNTP"},
+    {"ipconfig", 	CMD_ipconfig,  			" : Show network config"},
+    {"date",      	CMD_Date,   			" : Display the date and time. update will trigger a SNTP Time request"},
     {"rgb",			CMD_NotImplemented,		" : Adjust RGB Colour 000000-FFFFFF (HTML notation)"},
-    {"reboot",		CMD_Reboot,	 	" : Reboot"},
+    {"reboot",		CMD_Reboot,	 			" : Reboot"},
     {"uptime",		CMD_NotImplemented,	 	" : Power up time"},
+    {"relay",		CMD_Relay,	 			" : optional:relaynumber on/off"},
+    {"setport",		CMD_NotImplemented,	 	" : portletter mask portdata - set port output"},
+    {"getport",		CMD_NotImplemented,	 	" : portletter - get port status"},
+    {"setportdir",	CMD_NotImplemented,	 	" : portletter mask direction - set port direction"},
+    {"getportdir",	CMD_NotImplemented,	 	" : portletter - get port direction"},
+    {"getadcs",		CMD_Adcs,	 			" : return ADC values for each port"},
+    {"factorydefault",		CMD_Factory,	" : factory default settings"},
     { 0, 0, 0 }
 };
 
@@ -140,6 +151,7 @@ static char first = true;
 
 		UARTprintf(">");
 	}
+
 }
 
 
@@ -207,6 +219,15 @@ ui8 macAddr[8];
 
     tempChar = &temp;
 
+    if ( g_sParameters.ucFlags & CONFIG_FLAG_STATICIP )
+    {
+    	UARTprintf("Static IP\n");
+    }
+    else
+    {
+    	UARTprintf("Dynamic IP\n");
+    }
+
     Ethernet_GetMacAddress(&macAddr);
     UARTprintf("MAC : \%02X-\%02X-\%02X-\%02X-\%02X-\%02X \n", macAddr[0],macAddr[1],macAddr[2],macAddr[3],macAddr[4],macAddr[5] );
 
@@ -244,7 +265,7 @@ CMD_Reboot (int argc, char **argv)
 
 //*****************************************************************************
 //
-// Command: reboot
+// Command: date
 //
 // Reboots the splashbase
 //
@@ -257,16 +278,102 @@ tTime currentTime;
     (void) argc;
     (void) argv;
 
-    if ((argc > 1) && ( *(argv[1]) == 'u'))
+    //if ((argc > 1) && ( *(argv[1]) == 'u'))
+    if ((argc > 1) && ( argv[1][0] == 'u'))
     {
-    	UARTprintf("Updating Clock Via SNTP");
+    	UARTprintf("Updating Clock Via SNTP \n");
     	SntpGetTime();
     }
     else
     {
     	ulocaltime(Time_StampNow(), &currentTime);
-    	UARTprintf("%02d-%02d-%02d %02d:%02d:%02d \n", currentTime.usYear, currentTime.ucMon, currentTime.ucMday, currentTime.ucHour, currentTime.ucMin, currentTime.ucSec);
+    	UARTprintf("%02d-%02d-%02d %02d:%02d:%02d \n", currentTime.usYear, (currentTime.ucMon+1), currentTime.ucMday, currentTime.ucHour, currentTime.ucMin, currentTime.ucSec);
     }
+}
+
+
+int CMD_Relay (int argc, char **argv)
+{
+ui8 command = 2;
+(void) argc;
+(void) argv;
+
+	if ( argc > 2 )
+	{
+		if ( 'n' == argv[2][1] )
+		{
+			command = 1;
+		}
+		else if ( 'f' == argv[2][1] )
+		{
+			command = 0;
+		}
+
+		if (command < 2)
+		{
+			switch ( argv[1][0] )
+			{
+				case '1' :
+					relayControl( command, 0x01);
+				break;
+
+				case '2' :
+					relayControl( command<<1, 0x02);
+				break;
+
+				case '3' :
+					relayControl( command<<2, 0x04);
+				break;
+
+				case '4' :
+					relayControl( command<<3, 0x08);
+				break;
+			}
+		}
+	}
+	else if ( argc > 1 )
+	{
+		if ( 'n' == argv[1][1] )
+		{
+			relayControl( 0x0F, 0x0F);
+		}
+		else if ( 'f' == argv[1][1] )
+		{
+			relayControl( 0x00, 0x0F);
+		}
+	}
+}
+
+//*****************************************************************************
+//
+// Command: rand
+//
+// Starts the automatic light sequence immediately.
+//
+//*****************************************************************************
+int
+CMD_Adcs (int argc, char **argv)
+{
+	ui16 adcValues[3];
+
+	AdcAllAdcResults(&adcValues[0], sizeof(adcValues));
+	UARTprintf("%u,%u,%u\n", adcValues[0], adcValues[1], adcValues[2]);
+}
+
+
+//*****************************************************************************
+//
+// Command: factory
+//
+// Starts the automatic light sequence immediately.
+//
+//*****************************************************************************
+int CMD_Factory (int argc, char **argv)
+{
+	ConfigLoadFactory();
+	ConfigSave();
+	ConfigUpdateAllParameters(true);
+	UARTprintf("Reverted To Factory Defaults\n");
 }
 
 

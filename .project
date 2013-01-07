@@ -46,11 +46,6 @@
 			<locationURI>STELLARISWARE_DIR/utils/ringbuf.c</locationURI>
 		</link>
 		<link>
-			<name>utils/uartstdio.c</name>
-			<type>1</type>
-			<locationURI>STELLARISWARE_DIR/utils/uartstdio.c</locationURI>
-		</link>
-		<link>
 			<name>utils/ustdlib.c</name>
 			<type>1</type>
 			<locationURI>STELLARISWARE_DIR/utils/ustdlib.c</locationURI>
