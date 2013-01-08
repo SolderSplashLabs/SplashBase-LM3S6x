@@ -48,8 +48,9 @@ ui8 result = false;
 			{
 				// found it! create the correct mask, and work out the correct offset for the
 				// select bridge
-				SB_ServoSet ((0x01<<i), &position, (position % SERVOS_PER_BRIDGE), 1);
+				SB_ServoSet ((0x01<<i), &position, (servoNo % SERVOS_PER_BRIDGE), 1);
 				result = true;
+				break;
 			}
 		}
 	}

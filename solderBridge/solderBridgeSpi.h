@@ -19,7 +19,7 @@
 #define SB_SPI_SLAVE4	GPIO_PIN_4
 
 #define SB_SPI_CS_PORT	GPIO_PORTE_BASE
-#define SB_SPI_CS_PINS	{(SB_SPI_SLAVE0 | SB_SPI_SLAVE1 | SB_SPI_SLAVE2 | SB_SPI_SLAVE3 | SB_SPI_SLAVE4);}
+#define SB_SPI_CS_PINS	SB_SPI_SLAVE0 | SB_SPI_SLAVE1 | SB_SPI_SLAVE2 | SB_SPI_SLAVE3 | SB_SPI_SLAVE4
 
 enum SB_TYPELIST
 {
@@ -28,10 +28,35 @@ enum SB_TYPELIST
 	SB_DMX_MASTER,
 	SB_NAUGHT_TO_TEN,
 	SB_DATALOGGER,
-	SB_NINE_DOF
+	SB_NINE_DOF,
+	SB_BRIDGE_MAX
 };
 
+
+enum SPI_COMMANDS
+{
+	SB_WHOS_THERE = 0x01,
+	SB_SERVO_MOVE = 0x10,
+	SB_SERVO_TIME,
+	SB_SERVO_HOME,
+	SB_SERVO_MANAGE,
+	SB_DMX_UPDATE = 0x20,
+	SB_DMX_SCENE,
+	SB_DMX_MODE,
+	SB_DMX_MANAGE,
+	SB_ZEROTEN_UPDATE = 0x30
+};
+
+
+void SolderBridge_Task ( void );
+bool SolderBridge_StartScan ( void );
+void SB_CS_Select ( ui8 csMask );
+void SB_CS_DeSelect ( ui8 csMask );
 void SB_ServoSet (ui8 slaveMask, ui8 *positions, ui8 servoOffset, ui8 servoCnt );
 
+const char * SB_GetBridgeName ( ui8 position );
+ui8 SB_GetBridgeType ( ui8 position );
+
+void SB_Scan ( bool getResponse );
 
 extern ui8 SolderBridgeList[ SB_SPI_CS_COUNT ];

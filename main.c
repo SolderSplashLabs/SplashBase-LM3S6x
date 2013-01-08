@@ -70,6 +70,8 @@ void SysTickIntHandler(void)
 
 	// The Logic task handles all of the if 'this' then 'that' functionality
 	LogicTask();
+
+	SolderBridge_Task();
 }
 
 // *****************************************************************************
@@ -80,7 +82,6 @@ void IdleTasks ( void )
 {
 	// Tasks performed in the Idle task can and will be interrupted so only tasks that can handle
 	// that can be performed. they may also be starved if the scheduled tasks are busy.
-
 }
 
 
@@ -99,9 +100,7 @@ void InitialiseHW ( void )
 	}
 
 	// 50 MHz
-	SysCtlClockSet(SYSCTL_SYSDIV_4 | SYSCTL_USE_PLL | SYSCTL_OSC_MAIN |
-				   SYSCTL_XTAL_8MHZ);
-
+	SysCtlClockSet(SYSCTL_SYSDIV_4 | SYSCTL_USE_PLL | SYSCTL_OSC_MAIN | SYSCTL_XTAL_8MHZ);
 
 	// Enable Peripherals
 	SysCtlPeripheralEnable(SYSCTL_PERIPH_ETH);
@@ -179,6 +178,7 @@ void InitialiseHW ( void )
 		GPIOPinTypeUART(PIN_U1TX_PORT, PIN_U1TX_PIN);
 
 		UARTStdioInit(SERIAL_UART);
+		UARTprintf("Booting\n");
 
 	#endif
 
@@ -194,6 +194,8 @@ void InitialiseHW ( void )
 
 	LogicStartStop(true);
 
+	SolderBridge_StartScan();
+
 	// Most, if not all M3's have a SysTick which you can use for scheduling your code
 	SysTickPeriodSet(SysCtlClockGet() / SYSTICKHZ);
 	SysTickEnable();
@@ -205,7 +207,6 @@ void InitialiseHW ( void )
 // Start of the C Code
 // *****************************************************************************
 int main(void)
-
 {
 	volatile ui8 tmpMacAddr[8];
 
