@@ -194,6 +194,8 @@ void InitialiseHW ( void )
 
 	LogicStartStop(true);
 
+	SB_Init();
+
 	SolderBridge_StartScan();
 
 	// Most, if not all M3's have a SysTick which you can use for scheduling your code
@@ -214,6 +216,7 @@ int main(void)
 
 	Ethernet_GetMacAddress((ui8 *)&tmpMacAddr[0]);
 
+	// Initalise the SolderSplash UDP Coms
 	SSC_Init();
 	SSC_MACAddrSet((ui8 *)tmpMacAddr);
 	SSC_SetUnitName((ui8 *)g_sParameters.ucModName);

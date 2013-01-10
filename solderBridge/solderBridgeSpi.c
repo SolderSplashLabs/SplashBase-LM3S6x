@@ -75,11 +75,12 @@ static void SB_Scan ( bool getResponse )
 ui32 tempLong = 0;
 ui8 i = 0;
 
-	if ( getResponse )
+	if (! getResponse )
 	{
 		// CS them all!!
 		SB_CS_Select( SB_SPI_SLAVE0 | SB_SPI_SLAVE1 | SB_SPI_SLAVE2 | SB_SPI_SLAVE3 | SB_SPI_SLAVE4 );
-		SSIDataPutNonBlocking(SSI0_BASE, (ui16)('#'<<8 | SB_WHOS_THERE));
+
+		SSIDataPut(SSI0_BASE, (ui16)('#'<<8 | SB_WHOS_THERE));
 
 		while ( SSIBusy(SSI0_BASE) )
 		{
@@ -92,11 +93,6 @@ ui8 i = 0;
 
 		}
 
-		while ( SSIBusy(SSI0_BASE) )
-		{
-			// TODO : Time out
-		}
-
 		SB_CS_DeSelect(SB_SPI_CS_PINS);
 
 		SB_Scanning = true;
@@ -107,9 +103,14 @@ ui8 i = 0;
 		{
 			SB_CS_Select( 0x01 << i );
 			// Clock out zeros
-			SSIDataPutNonBlocking(SSI0_BASE, (ui16)0x0000);
+			SSIDataPut(SSI0_BASE, (ui16)0x0000);
 
-			// Clear data read in
+			while ( SSIBusy(SSI0_BASE) )
+			{
+				// TODO : Time out
+			}
+
+			// Read the data read in
 			SSIDataGetNonBlocking(SSI0_BASE, &tempLong);
 
 			SolderBridgeList[i] = (ui8)(tempLong >> 8);
@@ -117,6 +118,8 @@ ui8 i = 0;
 
 			SB_CS_DeSelect(SB_SPI_CS_PINS);
 		}
+
+		SB_Scanning = false;
 	}
 
 }
@@ -148,14 +151,16 @@ ui8 SB_GetBridgeType ( ui8 position )
 	return( SolderBridgeList[ position ] );
 }
 
-
 // --------------------------------------------------------------------------------------
 // SB_GetBridgeAtPos
 // returns the bridge name at that index
 // --------------------------------------------------------------------------------------
 const char * SB_GetBridgeName ( ui8 position )
 {
-	return( BRIDGE_NAMES[ SolderBridgeList[position] ] );
+ui8 bridgeType = SolderBridgeList[position];
+
+	if (bridgeType >= SB_BRIDGE_MAX-1) bridgeType = 0;
+	return( BRIDGE_NAMES[ bridgeType ] );
 }
 
 // --------------------------------------------------------------------------------------
@@ -195,18 +200,22 @@ ui8 pinMask = 0;
 void SB_ServoSet (ui8 slaveMask, ui8 *positions, ui8 servoOffset, ui8 servoCnt )
 {
 ui32 tempLong = 0;
+ui16 *tempShort ;
 
+	// TODO : Finish this function
 	// CS the Slave
 	SB_CS_Select( slaveMask );
 
 	SSIDataPutNonBlocking(SSI0_BASE, (ui16)('#'<<8 | SB_SERVO_MOVE));
 	SSIDataPutNonBlocking(SSI0_BASE, (ui16)(servoOffset<<8 | servoCnt));
-	SSIDataPutNonBlocking(SSI0_BASE, (ui16)(positions[0]<<8 | positions[1]));
-	SSIDataPutNonBlocking(SSI0_BASE, (ui16)(positions[2]<<8 | positions[3]));
-	SSIDataPutNonBlocking(SSI0_BASE, (ui16)(positions[4]<<8 | positions[5]));
-	SSIDataPutNonBlocking(SSI0_BASE, (ui16)(positions[6]<<8 | positions[7]));
-	SSIDataPutNonBlocking(SSI0_BASE, (ui16)(positions[8]<<8 | positions[9]));
-	SSIDataPutNonBlocking(SSI0_BASE, (ui16)(positions[10]<<8 | positions[11]));
+	tempShort = positions;
+
+	SSIDataPutNonBlocking(SSI0_BASE, tempShort[0]);//(ui16)(positions[1]<<8 | positions[0]));
+	SSIDataPutNonBlocking(SSI0_BASE, tempShort[1]);//(ui16)(positions[3]<<8 | positions[2]));
+	SSIDataPutNonBlocking(SSI0_BASE, tempShort[2]);//(ui16)(positions[5]<<8 | positions[4]));
+	SSIDataPutNonBlocking(SSI0_BASE, tempShort[3]);//(ui16)(positions[7]<<8 | positions[6]));
+	SSIDataPutNonBlocking(SSI0_BASE, tempShort[4]);//(ui16)(positions[9]<<8 | positions[8]));
+	SSIDataPut(SSI0_BASE, tempShort[5]);//(ui16)(positions[11]<<8 | positions[10]));
 
 	// Make sure it's all sent
 	while ( SSIBusy(SSI0_BASE) )
@@ -234,6 +243,8 @@ void SB_ZeroToTenOutput (ui8 slaveMask, ui8 *outputLevels )
 ui16 tempLong = 0;
 
 	// CS the Slave
+	SB_CS_Select( slaveMask );
+
 	SSIDataPutNonBlocking(SSI0_BASE, (ui16)('#'<<8 | SB_ZEROTEN_UPDATE));
 
 	// Pack the update
@@ -241,6 +252,62 @@ ui16 tempLong = 0;
 	SSIDataPutNonBlocking(SSI0_BASE, (ui16)(outputLevels[2]<<8 | outputLevels[3]));
 	SSIDataPutNonBlocking(SSI0_BASE, (ui16)(outputLevels[4]<<8 | outputLevels[5]));
 	SSIDataPutNonBlocking(SSI0_BASE, (ui16)(outputLevels[6]<<8 | 0x00));
+
+	// Make sure it's all sent
+	while ( SSIBusy(SSI0_BASE) )
+	{
+		// TODO : Time out
+	}
+
+	// Clear data read in
+	while(SSIDataGetNonBlocking(SSI0_BASE, &tempLong))
+	{
+
+	}
+
+	// Deselect the Slave
+	SB_CS_DeSelect( slaveMask );
+}
+
+
+// --------------------------------------------------------------------------------------
+// SB_DmxUpdate
+//
+// --------------------------------------------------------------------------------------
+bool SB_DmxUpdate(ui8 slaveMask, ui16 offset, ui16 channelCnt, ui8 *updatedVal)
+{
+	ui16 tempLong = 0;
+	ui16 i = 0;
+
+	// TODO : Buffer check, channelCnt Limit
+	// TODO : offset check with channelcnt cant exceed 512
+
+	// CS the Slave
+	SB_CS_Select( slaveMask );
+
+	SSIDataPut(SSI0_BASE, (ui16)('#'<<8 | SB_DMX_UPDATE));
+
+	SSIDataPut(SSI0_BASE, offset);
+	SSIDataPut(SSI0_BASE, channelCnt);
+
+	// pack 2 bytes into each 16bit value
+	// accounting for an odd number to send
+	for (i=0; i<(channelCnt/2); i++)
+	{
+		tempLong = updatedVal[i*2];
+		//tempLong <<= 8;
+
+		if ( (i*2)+1 >= channelCnt)
+		{
+			// clear the bottom byte out
+			tempLong &= ~0xFF00;
+		}
+		else
+		{
+			tempLong |= (updatedVal[(i*2)+1] << 8) & 0xFF00;
+		}
+		SSIDataPut(SSI0_BASE, tempLong);
+	}
 
 	// Make sure it's all sent
 	while ( SSIBusy(SSI0_BASE) )
@@ -284,8 +351,8 @@ void SB_Init ( void )
 	// Deselect them all!
 	SB_CS_DeSelect( 0xFF );
 
-	// Rising Edge, 1mhz, 16bits per
-	SSIConfigSetExpClk(SSI0_BASE, SysCtlClockGet(), SSI_FRF_MOTO_MODE_0, SSI_MODE_MASTER, 1000000, 16);
+	// Rising Edge, 5mhz, 16bits per
+	SSIConfigSetExpClk(SSI0_BASE, SysCtlClockGet(), SSI_FRF_MOTO_MODE_0, SSI_MODE_MASTER, 5000000, 16);
 
 	SSIEnable(SSI0_BASE);
 
