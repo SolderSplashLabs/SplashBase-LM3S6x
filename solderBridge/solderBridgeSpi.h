@@ -5,7 +5,7 @@
   ___) | (_) | | (_| |  __/ |   ___) | |_) | | (_| \__ \ | | |	| |__| (_| | |_) \__ \
  |____/ \___/|_|\__,_|\___|_|  |____/| .__/|_|\__,_|___/_| |_|	|_____\__,_|_.__/|___/
                                      |_|
- (C)SolderSplash Labs 2013-01-01 - www.soldersplash.co.uk - C. Matthews - R. Steel
+ (C)SolderSplash Labs 2013 - www.soldersplash.co.uk - C. Matthews - R. Steel
 
  Redistributions of source code must retain the above copyright notice
 */
@@ -49,6 +49,8 @@ enum SPI_COMMANDS
 
 
 void SolderBridge_Task ( void );
+void SB_Init ( void );
+
 bool SolderBridge_StartScan ( void );
 void SB_CS_Select ( ui8 csMask );
 void SB_CS_DeSelect ( ui8 csMask );

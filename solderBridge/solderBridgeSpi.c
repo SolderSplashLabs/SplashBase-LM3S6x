@@ -5,7 +5,7 @@
   ___) | (_) | | (_| |  __/ |   ___) | |_) | | (_| \__ \ | | |	| |__| (_| | |_) \__ \
  |____/ \___/|_|\__,_|\___|_|  |____/| .__/|_|\__,_|___/_| |_|	|_____\__,_|_.__/|___/
                                      |_|
- (C)SolderSplash Labs 2013-01-01 - www.soldersplash.co.uk - C. Matthews - R. Steel
+ (C)SolderSplash Labs 2013 - www.soldersplash.co.uk - C. Matthews - R. Steel
 
  Redistributions of source code must retain the above copyright notice
 */
@@ -41,7 +41,10 @@ void SolderBridge_Task ( void )
 {
 	if (SB_Scanning)
 	{
-		SB_Scan( SB_Scanning );
+		if (! SSIBusy(SSI0_BASE) )
+		{
+			SB_Scan( SB_Scanning );
+		}
 	}
 }
 
@@ -82,23 +85,31 @@ ui8 i = 0;
 
 		SSIDataPut(SSI0_BASE, (ui16)('#'<<8 | SB_WHOS_THERE));
 
-		while ( SSIBusy(SSI0_BASE) )
-		{
+		//while ( SSIBusy(SSI0_BASE) )
+		//{
 			// TODO : Time out
-		}
+		//}
 
 		// Clear data read in
-		while(SSIDataGetNonBlocking(SSI0_BASE, &tempLong))
-		{
+		//while(SSIDataGetNonBlocking(SSI0_BASE, &tempLong))
+		//{
 
-		}
+		//}
 
-		SB_CS_DeSelect(SB_SPI_CS_PINS);
+		//SB_CS_DeSelect(SB_SPI_CS_PINS);
 
 		SB_Scanning = true;
 	}
 	else
 	{
+		SB_CS_DeSelect(SB_SPI_CS_PINS);
+
+		// Clear any data read in
+		while(SSIDataGetNonBlocking(SSI0_BASE, &tempLong))
+		{
+
+		}
+
 		for (i=0; i<SB_SPI_CS_COUNT; i++)
 		{
 			SB_CS_Select( 0x01 << i );
@@ -208,14 +219,14 @@ ui16 *tempShort ;
 
 	SSIDataPutNonBlocking(SSI0_BASE, (ui16)('#'<<8 | SB_SERVO_MOVE));
 	SSIDataPutNonBlocking(SSI0_BASE, (ui16)(servoOffset<<8 | servoCnt));
-	tempShort = positions;
+	tempShort = (ui16 *)positions;
 
-	SSIDataPutNonBlocking(SSI0_BASE, tempShort[0]);//(ui16)(positions[1]<<8 | positions[0]));
-	SSIDataPutNonBlocking(SSI0_BASE, tempShort[1]);//(ui16)(positions[3]<<8 | positions[2]));
-	SSIDataPutNonBlocking(SSI0_BASE, tempShort[2]);//(ui16)(positions[5]<<8 | positions[4]));
-	SSIDataPutNonBlocking(SSI0_BASE, tempShort[3]);//(ui16)(positions[7]<<8 | positions[6]));
-	SSIDataPutNonBlocking(SSI0_BASE, tempShort[4]);//(ui16)(positions[9]<<8 | positions[8]));
-	SSIDataPut(SSI0_BASE, tempShort[5]);//(ui16)(positions[11]<<8 | positions[10]));
+	SSIDataPutNonBlocking(SSI0_BASE, tempShort[0]);
+	SSIDataPutNonBlocking(SSI0_BASE, tempShort[1]);
+	SSIDataPutNonBlocking(SSI0_BASE, tempShort[2]);
+	SSIDataPutNonBlocking(SSI0_BASE, tempShort[3]);
+	SSIDataPutNonBlocking(SSI0_BASE, tempShort[4]);
+	SSIDataPut(SSI0_BASE, tempShort[5]);
 
 	// Make sure it's all sent
 	while ( SSIBusy(SSI0_BASE) )
@@ -229,7 +240,7 @@ ui16 *tempShort ;
 
 	}
 
-	// Deselect the Slave
+	// De-select the Slave
 	SB_CS_DeSelect( slaveMask );
 }
 
@@ -240,7 +251,7 @@ ui16 *tempShort ;
 // --------------------------------------------------------------------------------------
 void SB_ZeroToTenOutput (ui8 slaveMask, ui8 *outputLevels )
 {
-ui16 tempLong = 0;
+ui32 tempLong = 0;
 
 	// CS the Slave
 	SB_CS_Select( slaveMask );
@@ -274,13 +285,13 @@ ui16 tempLong = 0;
 // SB_DmxUpdate
 //
 // --------------------------------------------------------------------------------------
-bool SB_DmxUpdate(ui8 slaveMask, ui16 offset, ui16 channelCnt, ui8 *updatedVal)
+void SB_DmxUpdate(ui8 slaveMask, ui16 offset, ui16 channelCnt, ui8 *updatedVal)
 {
-	ui16 tempLong = 0;
+	ui32 tempLong = 0;
 	ui16 i = 0;
 
 	// TODO : Buffer check, channelCnt Limit
-	// TODO : offset check with channelcnt cant exceed 512
+	// TODO : offset check with channel cant exceed 512
 
 	// CS the Slave
 	SB_CS_Select( slaveMask );

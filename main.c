@@ -58,6 +58,8 @@ void SysTickIntHandler(void)
 	// Keep track of time!
 	Time_Task();
 
+	SolderBridge_Task();
+
 	Serial_Task();
 
 	ColourModeTick();
@@ -70,8 +72,6 @@ void SysTickIntHandler(void)
 
 	// The Logic task handles all of the if 'this' then 'that' functionality
 	LogicTask();
-
-	SolderBridge_Task();
 }
 
 // *****************************************************************************
@@ -195,8 +195,10 @@ void InitialiseHW ( void )
 	LogicStartStop(true);
 
 	SB_Init();
+	SB_I2C_Init();
 
 	SolderBridge_StartScan();
+	SB_I2C_Scan();
 
 	// Most, if not all M3's have a SysTick which you can use for scheduling your code
 	SysTickPeriodSet(SysCtlClockGet() / SYSTICKHZ);

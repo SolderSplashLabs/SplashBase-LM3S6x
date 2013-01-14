@@ -58,6 +58,8 @@ typedef enum LOGIC_ACTION_TYPE
 	L_ACTION_SERVO_POS
 } LOGIC_ACTION_TYPE;
 
+// Note : Add remote control another splashbase option, set/clear relay? set output?
+
 typedef struct LOGIC_CONDITION
 {
 	LOGIC_EVENT_TYPE eventType;			// This event has to occur ( using the 2 parameters ) before the action is taken

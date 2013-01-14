@@ -26,6 +26,8 @@
 #include "config.h"
 #include "globals.h"
 
+#include "solderBridge\solderBridgeI2c.h"
+
 //*****************************************************************************
 //
 // Input buffer for the command line interpreter.
@@ -69,8 +71,7 @@ extern int CMD_ipconfig (int argc, char **argv);
 
 
 
-char WELCOME_MSG[] = "\n\ 
-  ____        _     _           ____        _           _	 _          _\n\
+char WELCOME_MSG[] = "\n  ____        _     _           ____        _           _	 _          _\n\
  / ___|  ___ | | __| | ___ _ __/ ___| _ __ | | __ _ ___| |__	| |    __ _| |__  ___ \n\
  \\___ \\ / _ \\| |/ _` |/ _ \\ '__\\___ \\| '_ \\| |/ _` / __| '_ \\	| |   / _` | '_ \\/ __| \n\
   ___) | (_) | | (_| |  __/ |   ___) | |_) | | (_| \\__ \\ | | |	| |__| (_| | |_) \\__ \\ \n\
@@ -372,6 +373,7 @@ int CMD_BridgeScan (int argc, char **argv)
 	(void) argc;
 	(void) argv;
 
+	/*
 	if ( SolderBridge_StartScan() )
 	{
 		UARTprintf("Scanning SPI for Bridges\n");
@@ -380,6 +382,10 @@ int CMD_BridgeScan (int argc, char **argv)
 	{
 		UARTprintf("Busy\n");
 	}
+	*/
+
+	SolderBridge_StartScan();
+	SB_I2C_Scan();
 
 	return (0);
 }
@@ -394,11 +400,27 @@ int CMD_BridgeScan (int argc, char **argv)
 //*****************************************************************************
 int CMD_BridgeList (int argc, char **argv)
 {
-	UARTprintf("CS0 : %s \n", SB_GetBridgeName(0));
+ui8 i = 0;
+
+	for ( i=0; i<5; i++ )
+	{
+		UARTprintf("CS%u : %s \n", i, SB_GetBridgeName(i));
+	}
+
+	/*
 	UARTprintf("CS1 : %s \n", SB_GetBridgeName(1));
 	UARTprintf("CS2 : %s \n", SB_GetBridgeName(2));
 	UARTprintf("CS3 : %s \n", SB_GetBridgeName(3));
 	UARTprintf("CS4 : %s \n", SB_GetBridgeName(4));
+	*/
+
+	for ( i=0; i<8; i++ )
+	{
+		if ( IoExpanders.pcaAvailible & (0x01<<i) )
+		{
+			UARTprintf("I/O Expander, i2c Address : %02X \n", (0x20+i));
+		}
+	}
 
 	return (0);
 }

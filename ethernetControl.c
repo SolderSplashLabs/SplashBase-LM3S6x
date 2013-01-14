@@ -191,7 +191,7 @@ void Ethernet_Init ( void )
 
 	// Init the lwip stack
 
-	lwIPInit(macAddr, g_sParameters.ulStaticIP, g_sParameters.ulSubnetMask,
+	lwIPInit((const unsigned char *)macAddr, g_sParameters.ulStaticIP, g_sParameters.ulSubnetMask,
 	             g_sParameters.ulGatewayIP, ((g_sParameters.ucFlags &
 	             CONFIG_FLAG_STATICIP) ? IPADDR_USE_STATIC : IPADDR_USE_DHCP));
 
