@@ -70,6 +70,8 @@ void SysTickIntHandler(void)
 	// Measure any analogue inputs
 	AdcTask();
 
+	ExtGpio_Task();
+
 	// The Logic task handles all of the if 'this' then 'that' functionality
 	LogicTask();
 }
@@ -195,10 +197,10 @@ void InitialiseHW ( void )
 	LogicStartStop(true);
 
 	SB_Init();
-	SB_I2C_Init();
+	ExtGpio_Init();
 
 	SolderBridge_StartScan();
-	SB_I2C_Scan();
+	ExtGpio_Scan();
 
 	// Most, if not all M3's have a SysTick which you can use for scheduling your code
 	SysTickPeriodSet(SysCtlClockGet() / SYSTICKHZ);

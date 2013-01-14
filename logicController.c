@@ -31,6 +31,7 @@
 #include "ethernetControl.h"
 #include "time.h"
 #include "cosm.h"
+#include "userGpioControl.h"
 #include "solderBridge/servoSolderBridge.h"
 
 #define _LOGIC_H_
@@ -41,12 +42,8 @@
 //LOGIC_CONDITION LogicConditions[LOGIC_MAX_CONDITIONS];
 LOGIC_CONDITION *LogicConditions;
 
-ui32 GPIO_REGISTERS[] = { GPIO_PORTA_BASE, GPIO_PORTB_BASE, GPIO_PORTC_BASE, GPIO_PORTD_BASE, GPIO_PORTE_BASE, GPIO_PORTF_BASE, GPIO_PORTG_BASE, GPIO_PORTH_BASE };
-
 ui16 LogicRegisters[LOGIC_NUM_OF_REGISTERS];
-
 ui8 LogicRunning = false;
-
 ui8 Logic_NoOfConditions = 0;
 ui8 cosmLimit = 0;
 
@@ -707,12 +704,16 @@ ui32 param2 = LogicConditions[conditionNo].actionParam2;
 //*****************************************************************************
 void LogicSetPinHigh ( ui8 conditionNo )
 {
+	/*
 volatile ui32 portRegister = GPIO_REGISTERS[LogicConditions[conditionNo].actionParam1];
 volatile ui8 pin = 0;
 
 	pin = LogicConditions[conditionNo].actionParam2;
 
 	GPIOPinWrite( portRegister, pin, pin);
+	*/
+
+	UserGpioSetOutputs( LogicConditions[conditionNo].actionParam1, LogicConditions[conditionNo].actionParam2, LogicConditions[conditionNo].actionParam2 );
 }
 
 //*****************************************************************************
@@ -722,12 +723,16 @@ volatile ui8 pin = 0;
 //*****************************************************************************
 void LogicSetPinLow ( ui8 conditionNo )
 {
+	/*
 volatile ui32 portRegister = GPIO_REGISTERS[LogicConditions[conditionNo].actionParam1];
 ui8 pin = 0;
 
 	pin = LogicConditions[conditionNo].actionParam2;
 
 	GPIOPinWrite( portRegister, pin, 0);
+	*/
+
+	UserGpioSetOutputs( LogicConditions[conditionNo].actionParam1, LogicConditions[conditionNo].actionParam2, 0 );
 }
 
 

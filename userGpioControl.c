@@ -21,11 +21,8 @@
 
 #include "datatypes.h"
 
-#define GPIO_MAX_MCU		8
-#define GPIO_MAX_EXT		8
-#define GPIO_TOTAL			GPIO_MAX_MCU + GPIO_MAX_EXT
-
-ui32 GPIO_REGISTERS[] = { GPIO_PORTA_BASE, GPIO_PORTB_BASE, GPIO_PORTC_BASE, GPIO_PORTD_BASE, GPIO_PORTE_BASE, GPIO_PORTF_BASE, GPIO_PORTG_BASE, GPIO_PORTH_BASE };
+#define _USER_GPIO_
+#include "userGpioControl.h"
 
 //*****************************************************************************
 //
@@ -40,10 +37,32 @@ ui32 UserCheckGpioReservedPins( ui8 portNo, ui32 mask )
 
 //*****************************************************************************
 //
+// UserGpioAddToMask - Used by application code to reserve pins for application
+// use and not the user
+//
+//*****************************************************************************
+void UserGpioAddToMask( ui8 portNo, ui32 pins )
+{
+
+}
+
+//*****************************************************************************
+//
+// UserGpioRemoveFromMask - Used by application code to remove reserve pins
+// and allow the user to control them
+//
+//*****************************************************************************
+void UserGpioRemoveFromMask( ui8 portNo, ui32 pins )
+{
+
+}
+
+//*****************************************************************************
+//
 // UserSetGpioInput - Set GPIO as an Input
 //
 //*****************************************************************************
-bool UserSetGpioOutput ( ui8 portNo, ui32 pins )
+bool UserGpioDirInput ( ui8 portNo, ui32 pins )
 {
 bool result = false;
 
@@ -65,6 +84,8 @@ bool result = false;
 	{
 		// Out of range!
 	}
+
+	return( result );
 }
 
 //*****************************************************************************
@@ -72,7 +93,7 @@ bool result = false;
 // UserSetGpioOutput - Set GPIO as an output
 //
 //*****************************************************************************
-bool UserSetGpioOutput ( ui8 portNo, ui32 pins )
+bool UserGpioDirOutput ( ui8 portNo, ui32 pins )
 {
 bool result = false;
 
@@ -94,6 +115,8 @@ bool result = false;
 	{
 		// Out of range!
 	}
+
+	return( result );
 }
 
 
@@ -102,7 +125,7 @@ bool result = false;
 // UserSetGpioOutputs - Set/Clear GPIO outputs
 //
 //*****************************************************************************
-bool UserSetGpioOutputs ( ui8 portNo, ui32 mask, ui32 newVal)
+bool UserGpioSetOutputs ( ui8 portNo, ui32 mask, ui32 newVal)
 {
 ui32 portRegister = 0;
 bool result = false;
@@ -131,4 +154,6 @@ bool result = false;
 	{
 		// Out of range!
 	}
+
+	return( result );
 }

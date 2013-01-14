@@ -26,7 +26,7 @@
 #include "config.h"
 #include "globals.h"
 
-#include "solderBridge\solderBridgeI2c.h"
+#include "solderBridge\externalGpio.h"
 
 //*****************************************************************************
 //
@@ -385,7 +385,9 @@ int CMD_BridgeScan (int argc, char **argv)
 	*/
 
 	SolderBridge_StartScan();
-	SB_I2C_Scan();
+	ExtGpio_Scan();
+
+	CMD_BridgeList(0, 0);
 
 	return (0);
 }
@@ -418,7 +420,7 @@ ui8 i = 0;
 	{
 		if ( IoExpanders.pcaAvailible & (0x01<<i) )
 		{
-			UARTprintf("I/O Expander, i2c Address : %02X \n", (0x20+i));
+			UARTprintf("I/O Expander, i2c Address : 0x%02X \n", (0x20+i));
 		}
 	}
 
