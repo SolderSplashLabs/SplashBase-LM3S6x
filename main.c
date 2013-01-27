@@ -60,6 +60,8 @@ void SysTickIntHandler(void)
 
 	SolderBridge_Task();
 
+	ExtGpio_Task();
+
 	Serial_Task();
 
 	ColourModeTick();
@@ -69,8 +71,6 @@ void SysTickIntHandler(void)
 
 	// Measure any analogue inputs
 	AdcTask();
-
-	ExtGpio_Task();
 
 	// The Logic task handles all of the if 'this' then 'that' functionality
 	LogicTask();

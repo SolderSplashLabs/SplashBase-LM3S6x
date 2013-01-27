@@ -25,8 +25,11 @@
 #include "time.h"
 #include "config.h"
 #include "globals.h"
+#include "logicController.h"
 
 #include "solderBridge\externalGpio.h"
+
+// TODO : CPU Temp
 
 //*****************************************************************************
 //
@@ -35,14 +38,7 @@
 //*****************************************************************************
 static char g_cInput[200];
 
-//*****************************************************************************
-//
-// Defines for the command line argument parser provided as a standard part of
-// StellarisWare.  qs-rgb application uses the command line parser to extend
-// functionality to the serial port.
-//
-//*****************************************************************************
-
+// Max no of arguments per command
 #define CMDLINE_MAX_ARGS 5
 
 //*****************************************************************************
@@ -66,18 +62,19 @@ extern int CMD_BridgeScan (int argc, char **argv);
 extern int CMD_BridgeList (int argc, char **argv);
 extern int CMD_rand (int argc, char **argv);
 extern int CMD_intensity (int argc, char **argv);
-extern int CMD_rgb (int argc, char **argv);
 extern int CMD_ipconfig (int argc, char **argv);
+extern int CMD_GetTemperature (int argc, char **argv);
+extern int CMD_GetLogic (int argc, char **argv);
 
-
-
-char WELCOME_MSG[] = "\n  ____        _     _           ____        _           _	 _          _\n\
+// Serial Banner, this looks mangled but in putty it looks good!
+const char WELCOME_MSG[] = "\n  ____        _     _           ____        _           _	 _          _\n\
  / ___|  ___ | | __| | ___ _ __/ ___| _ __ | | __ _ ___| |__	| |    __ _| |__  ___ \n\
  \\___ \\ / _ \\| |/ _` |/ _ \\ '__\\___ \\| '_ \\| |/ _` / __| '_ \\	| |   / _` | '_ \\/ __| \n\
   ___) | (_) | | (_| |  __/ |   ___) | |_) | | (_| \\__ \\ | | |	| |__| (_| | |_) \\__ \\ \n\
  |____/ \\___/|_|\\__,_|\\___|_|  |____/| .__/|_|\\__,_|___/_| |_|	|_____\\__,_|_.__/|___/ \n\
                                      |_| \nSolderSplash Labs - SplashBase V";
 
+const char ACK_STRING[] = "Acknowledged\n";
 
 //*****************************************************************************
 //
@@ -90,26 +87,30 @@ tCmdLineEntry g_sCmdTable[] =
     {"?",     		CMD_help,      			" : Display list of commands" },
     {"setname",  	CMD_NotImplemented,     " : name - Set SplashBase name"},
     {"ipconfig", 	CMD_ipconfig,  			" : Show network config"},
-    {"date",      	CMD_Date,   			" : update - Display the date and time. update will trigger a SNTP Time request"},
-    {"rgb",			CMD_Rgb,				" : toprgb bottomrgb - 32bit in hex"},
+    {"date",      	CMD_Date,   			" : <update> - Display the date and time. optional update command to force an update via NTP"},
+    {"rgb",			CMD_Rgb,				" : <mode> <toprgb> <bottomrgb> - Mode 0-4, colours 32bit hex (html format)"},
     {"reboot",		CMD_Reboot,	 			" : Reboot"},
     {"uptime",		CMD_Uptime,	 			" : Power up time"},
-    {"relay",		CMD_Relay,	 			" : optional:relaynumber on/off"},
-    {"setport",		CMD_NotImplemented,	 	" : portletter mask portdata - set port output"},
-    {"getport",		CMD_NotImplemented,	 	" : portletter - get port status"},
-    {"setportdir",	CMD_NotImplemented,	 	" : portletter mask direction - set port direction"},
-    {"getportdir",	CMD_NotImplemented,	 	" : portletter - get port direction"},
+    {"relay",		CMD_Relay,	 			" : optional:<relaynumber> <on/off>"},
+    {"setport",		CMD_NotImplemented,	 	" : <portletter> <mask> <portdata> - set port output"},
+    {"getport",		CMD_NotImplemented,	 	" : <portletter> - get port status"},
+    {"setportdir",	CMD_NotImplemented,	 	" : <portletter> mask direction - set port direction"},
+    {"getportdir",	CMD_NotImplemented,	 	" : <portletter> - get port direction"},
     {"getadcs",		CMD_Adcs,	 			" : return ADC values for each port"},
     {"factorydefault",		CMD_Factory,	" : factory default settings"},
-    {"servomove",	CMD_ServoMove,			" : servo position - 8bit servo number and position"},
+    {"servomove",	CMD_ServoMove,			" : <servo> <position> - 8bit servo number (zero based) and position"},
     {"bridgescan",	CMD_BridgeScan,			" : Scan for SPI bridges"},
     {"bridgelist",	CMD_BridgeList,			" : List SPI bridges"},
     {"dmxupdate",	CMD_NotImplemented,		" : offset value"},
+    {"gettemp", 	CMD_GetTemperature,		" : Retrieve Temperature"},
+    {"getlogic",	CMD_GetLogic,			" : optional:<number> - List Logic Statements"},
     { 0, 0, 0 }
 };
 
 
 const int NUM_CMD = sizeof(g_sCmdTable)/sizeof(tCmdLineEntry);
+
+bool SerialPrintBridgeScanResult = false;
 
 //*****************************************************************************
 // Serial_Task
@@ -119,6 +120,16 @@ void Serial_Task ( void )
 {
 long lCommandStatus;
 static char first = true;
+
+	if (SerialPrintBridgeScanResult)
+	{
+		// Print the bridgelist
+		CMD_BridgeList(0,0);
+
+		SerialPrintBridgeScanResult = false;
+
+		UARTprintf(">");
+	}
 
 	if (UARTPeek('\r') != -1)
 	{
@@ -161,7 +172,14 @@ static char first = true;
 			UARTprintf("Too many arguments for command processor!\n");
 		}
 
-		UARTprintf(">");
+		if (SerialPrintBridgeScanResult)
+		{
+
+		}
+		else
+		{
+			UARTprintf(">");
+		}
 	}
 
 }
@@ -279,7 +297,8 @@ CMD_Reboot (int argc, char **argv)
 //
 // Command: date
 //
-// Reboots the splashbase
+// gets or updates the date/time
+// TODO : Currently assumes GMT
 //
 //*****************************************************************************
 int
@@ -299,7 +318,7 @@ tTime currentTime;
     else
     {
     	ulocaltime(Time_StampNow(), &currentTime);
-    	UARTprintf("%02d-%02d-%02d %02d:%02d:%02d \n", currentTime.usYear, (currentTime.ucMon+1), currentTime.ucMday, currentTime.ucHour, currentTime.ucMin, currentTime.ucSec);
+    	UARTprintf("%02d-%02d-%02d %02d:%02d:%02d GMT\n", currentTime.usYear, (currentTime.ucMon+1), currentTime.ucMday, currentTime.ucHour, currentTime.ucMin, currentTime.ucSec);
     }
 
     return (0);
@@ -387,7 +406,7 @@ int CMD_BridgeScan (int argc, char **argv)
 	SolderBridge_StartScan();
 	ExtGpio_Scan();
 
-	CMD_BridgeList(0, 0);
+	SerialPrintBridgeScanResult = true;
 
 	return (0);
 }
@@ -408,13 +427,6 @@ ui8 i = 0;
 	{
 		UARTprintf("CS%u : %s \n", i, SB_GetBridgeName(i));
 	}
-
-	/*
-	UARTprintf("CS1 : %s \n", SB_GetBridgeName(1));
-	UARTprintf("CS2 : %s \n", SB_GetBridgeName(2));
-	UARTprintf("CS3 : %s \n", SB_GetBridgeName(3));
-	UARTprintf("CS4 : %s \n", SB_GetBridgeName(4));
-	*/
 
 	for ( i=0; i<8; i++ )
 	{
@@ -489,7 +501,7 @@ ui8 minutes = 0;
 	minutes = uptime / SECONDS_IN_AN_MIN;
 	uptime -= minutes * SECONDS_IN_AN_MIN;
 
-	UARTprintf("%d days %02d:%02d:%02d \n", days, hours, minutes, uptime);
+	UARTprintf("%d day/s %02d:%02d:%02d \n", days, hours, minutes, uptime);
 
 	return (0);
 }
@@ -539,12 +551,12 @@ ui32 top = 0;
 ui32 bottom = 0;
 
 	mode = ustrtoul(argv[1], 0, 10);
-	top = ustrtoul(argv[1], 0, 16);
-	bottom = ustrtoul(argv[2], 0, 16);
+	top = ustrtoul(argv[2], 0, 16);
+	bottom = ustrtoul(argv[3], 0, 16);
 
 	// TODO : need to set no of ticks and steps
 	ColourModeSet( mode, top, bottom, 255, 1 );
-	UARTprintf("Acknowledged\n");
+	UARTprintf(ACK_STRING);
 
 	return (0);
 }
@@ -568,58 +580,48 @@ CMD_rand (int argc, char **argv)
 
 //*****************************************************************************
 //
-// Command: intensity
+// Command: CMD_GetTemperature
 //
-// Takes a single argument that is between zero and one hundred. The argument
-// must be an integer.  This is interpreted as the percentage of maximum
-// brightness with which to display the current color.
+// Display Temperature
 //
 //*****************************************************************************
-int
-CMD_intensity (int argc, char **argv)
+int CMD_GetTemperature (int argc, char **argv)
 {
-/*
-    unsigned long ulIntensity;
+ui32 internalDegC = AdcGetInternalTemp();
 
-    if(argc == 2)
-    {
-        ulIntensity = ustrtoul(argv[1], 0, 10);
-        g_sAppState.fIntensity = ((float) ulIntensity) / 100.0f;
-        RGBIntensitySet(g_sAppState.fIntensity);
-    }
-*/
-    return(0);
+	UARTprintf("MCU : %u°C\n", internalDegC);
 
+	return (0);
 }
 
 //*****************************************************************************
 //
-// Command: rgb
+// Command: CMD_GetLogic
 //
-// Takes a single argument that is a string between 000000 and FFFFFF.
-// This is the HTML color code that should be used to set the RGB LED color.
-//
-// http://www.w3schools.com/html/html_colors.asp
+// Show logic commands
 //
 //*****************************************************************************
-int
-CMD_rgb (int argc, char **argv)
+int CMD_GetLogic (int argc, char **argv)
 {
-/*
-	unsigned long ulHTMLColor;
+ui8 i = 0;
 
-    if(argc == 2)
-    {
-        ulHTMLColor = ustrtoul(argv[1], 0, 16);
-        g_sAppState.ulColors[RED] = (ulHTMLColor & 0xFF0000) >> 8;
-        g_sAppState.ulColors[GREEN] = (ulHTMLColor & 0x00FF00);
-        g_sAppState.ulColors[BLUE] = (ulHTMLColor & 0x0000FF) << 8;
-        g_sAppState.ulMode = APP_MODE_REMOTE;
-        g_sAppState.ulModeTimer = 0;
-        RGBColorSet(g_sAppState.ulColors);
-    }
-*/
-    return (0);
+	UARTprintf("\n");
 
+	for ( i=0; i<10; i++ )
+	{
+		if ( LogicConditions[i].active )
+		{
+			UARTprintf("%u : IF ( %s ) ", i, LogicGetEventStr(i, true));
+
+			if ( LogicConditions[i].andEventParam2 )
+			{
+				UARTprintf("AND ( %s ) ", LogicGetEventStr(i, false));
+			}
+
+			UARTprintf("THEN ( %s ) \n", LogicGetActionStr(i));
+		}
+	}
+
+	return (0);
 }
 

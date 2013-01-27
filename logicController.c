@@ -107,6 +107,40 @@ ui8 i = 0;
 	}
 }
 
+// --------------------------------------------------------------------------------------
+// LogicGetEventStr
+// returns the Logic statement event name at that index
+// --------------------------------------------------------------------------------------
+const char * LogicGetEventStr ( ui8 position, bool primary )
+{
+LOGIC_EVENT_TYPE eventType = L_EVENT_INVALID;
+
+	if ( primary )
+	{
+		eventType = LogicConditions[position].eventType;
+	}
+	else
+	{
+		eventType = LogicConditions[position].andEventType;
+	}
+
+	return( LOGIC_EVENT_TYPE_NAMES[ eventType ] );
+}
+
+// --------------------------------------------------------------------------------------
+// LogicGetName
+// returns the Logic statement action name at that index
+// --------------------------------------------------------------------------------------
+const char * LogicGetActionStr ( ui8 position )
+{
+LOGIC_ACTION_TYPE actionType = L_ACTION_INVALID;
+
+	actionType = LogicConditions[position].actionType;
+
+	return( LOGIC_ACTION_TYPE_NAMES[ actionType ] );
+}
+
+
 //*****************************************************************************
 //
 // LogicSaveConditions
@@ -566,6 +600,8 @@ void LogicStartStop ( bool start )
 	networkConnected = Ethernet_Connected();
 
 	LogicRunning = start;
+
+	LogicActions.actionType[0] = 0;
 }
 
 //*****************************************************************************

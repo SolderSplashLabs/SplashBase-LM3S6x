@@ -24,37 +24,45 @@
 #define _USER_GPIO_
 #include "userGpioControl.h"
 
-//*****************************************************************************
+// Mask of Outputs controlled by the application that the user should not be allowed to control
+static ui32 UserGpioMask[ GPIO_PORT_TOTAL ];
+
+
+// *****************************************************************************
 //
-// UserCheckGpioReservedPins - based on the the mode modifies the mask to remove
-// GPIOs that are assigned a function
+// UserGpio_AppGetMask - Return the mask to use on the supplied GPIO port
+// To avoid modifying Outputs Controlled by the Application
+// mask - mask intended to be used on the port
+// return - mask modified removing protected bits
 //
-//*****************************************************************************
-ui32 UserCheckGpioReservedPins( ui8 portNo, ui32 mask )
+// *****************************************************************************
+ui32 UserGpio_AppGetMask( ui8 portNo, ui32 mask )
 {
-	return ( mask );
+	return (mask &= ~UserGpioMask[portNo]);
 }
 
-//*****************************************************************************
+// *****************************************************************************
 //
-// UserGpioAddToMask - Used by application code to reserve pins for application
-// use and not the user
+// UserGpio_AppGetMask - Set the mask to use on the supplied GPIO port
+// To avoid modifying GPIO Controlled by the Application.
+// mask - bits set are added to the protected list
 //
-//*****************************************************************************
-void UserGpioAddToMask( ui8 portNo, ui32 pins )
+// *****************************************************************************
+void UserGpio_AppSetMask( ui8 portNo, ui32 mask )
 {
-
+	UserGpioMask[portNo] |= mask;
 }
 
-//*****************************************************************************
+// *****************************************************************************
 //
-// UserGpioRemoveFromMask - Used by application code to remove reserve pins
-// and allow the user to control them
+// UserGpio_AppClrMask - Clear bits in the on the supplied GPIO port
+// bits set in supplied mask are cleared from the application mask
+// mask - bits set are removed from the protected list
 //
-//*****************************************************************************
-void UserGpioRemoveFromMask( ui8 portNo, ui32 pins )
+// *****************************************************************************
+void UserGpio_AppClrMask( ui8 portNo, ui32 mask )
 {
-
+	UserGpioMask[portNo] &= ~mask;
 }
 
 //*****************************************************************************
@@ -66,16 +74,16 @@ bool UserGpioDirInput ( ui8 portNo, ui32 pins )
 {
 bool result = false;
 
-	if (portNo < GPIO_MAX_MCU)
+	if (portNo < GPIO_PORT_MAX_MCU)
 	{
 		// If we have a relay add-on stop it's GPIO being changed
-		pins = UserCheckGpioReservedPins(portNo, pins);
+		pins = UserGpio_AppGetMask(portNo, pins);
 
 		GPIOPinTypeGPIOInput(GPIO_REGISTERS[portNo], pins);
 
 		result = true;
 	}
-	else if (portNo < GPIO_TOTAL)
+	else if (portNo < GPIO_PORT_TOTAL)
 	{
 		// TODO : Tell solderbridge module to set supplied pins on the port as inputs
 		result = true;
@@ -93,22 +101,23 @@ bool result = false;
 // UserSetGpioOutput - Set GPIO as an output
 //
 //*****************************************************************************
-bool UserGpioDirOutput ( ui8 portNo, ui32 pins )
+bool UserGpioDirOutput ( ui8 portNo,  ui32 mask, ui32 pins )
 {
 bool result = false;
 
-	if (portNo < GPIO_MAX_MCU)
+	if (portNo < GPIO_PORT_MAX_MCU)
 	{
 		// If we have a relay add-on stop it's GPIO being changed
-		pins = UserCheckGpioReservedPins(portNo, pins);
+		pins = UserGpio_AppGetMask(portNo, pins);
 
 		GPIOPinTypeGPIOOutput(GPIO_REGISTERS[portNo], pins);
 
 		result = true;
 	}
-	else if (portNo < GPIO_TOTAL)
+	else if (portNo < GPIO_PORT_TOTAL)
 	{
 		// TODO : Tell solderbridge module to set supplied pins on the port as outputs
+		ExtGpio_SetDirection( portNo-GPIO_PORT_MAX_MCU, mask, pins );
 		result = true;
 	}
 	else
@@ -130,24 +139,24 @@ bool UserGpioSetOutputs ( ui8 portNo, ui32 mask, ui32 newVal)
 ui32 portRegister = 0;
 bool result = false;
 
-	if (portNo < GPIO_MAX_MCU)
+	if (portNo < GPIO_PORT_MAX_MCU)
 	{
 		// Stop any output thats being used from being user controlled
-		mask = UserCheckGpioReservedPins(portNo, mask);
+		mask = UserGpio_AppGetMask(portNo, mask);
 
 		// Apply the change to the microcontrollers ports
 		portRegister = GPIO_REGISTERS[portNo];
 
 		// If we have a relay add-on stop it's GPIO being changed via this function
-		mask = UserCheckGpioReservedPins(portNo, mask);
+		mask = UserGpio_AppGetMask(portNo, mask);
 
 		GPIOPinWrite(portRegister, mask, newVal);
 		result = true;
 	}
-	else if ( portNo < (GPIO_MAX_MCU +GPIO_MAX_EXT))
+	else if ( portNo < (GPIO_PORT_TOTAL))
 	{
 		// This change effects external I/O
-
+		ExtGpio_SetPort( portNo-GPIO_PORT_MAX_MCU, mask, newVal );
 		result = true;
 	}
 	else

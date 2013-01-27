@@ -39,6 +39,7 @@ typedef enum LOGIC_EVENT_TYPE
 	L_EVENT_TIME_AFTER,
 	L_EVENT_TIME_BEFORE,
 	L_EVENT_NET_MSG,
+	L_EVENT_MAX
 } LOGIC_EVENT_TYPE;
 
 typedef enum LOGIC_ACTION_TYPE
@@ -55,15 +56,17 @@ typedef enum LOGIC_ACTION_TYPE
 	L_ACTION_SERIAL_MSG,
 	L_ACTION_CONTROL_RELAY,
 	L_ACTION_SEND_COSM,
-	L_ACTION_SERVO_POS
+	L_ACTION_SERVO_POS,
+	L_ACTION_MAX
 } LOGIC_ACTION_TYPE;
+
 
 // Note : Add remote control another splashbase option, set/clear relay? set output?
 
 typedef struct LOGIC_CONDITION
 {
 	LOGIC_EVENT_TYPE eventType;			// This event has to occur ( using the 2 parameters ) before the action is taken
-	LOGIC_EVENT_TYPE andEventType;		// if this event is set to somthing other than Invalid, this condition must also be satisfied before executing the action
+	LOGIC_EVENT_TYPE andEventType;		// if this event is set to something other than Invalid, this condition must also be satisfied before executing the action
 	LOGIC_ACTION_TYPE actionType;
 
 	ui8 active:1;					// This condition is active
@@ -79,10 +82,72 @@ typedef struct LOGIC_CONDITION
 
 } LOGIC_CONDITION;
 
+/*
+typedef struct LOGIC_ACTION
+{
+	LOGIC_ACTION_TYPE actionType;
+	ui8 spare[3];						// Spares to indicate structure packing
+	ui32 actionParam1;
+	ui32 actionParam2;
+};
+*/
+
+typedef struct LOGIC_ACTIONS
+{
+	LOGIC_ACTION_TYPE actionType[16];
+	ui32 actionParam1[16];
+	ui32 actionParam2[16];
+} LOGIC_ACTIONS;
+
 #ifdef _LOGIC_H_
+
+
+volatile LOGIC_ACTIONS LogicActions;
 
 // a cache of the GPIO Ports, that are processed as a single snapshot
 ui32 LogicGpioData[ GPIO_PORTS_MAX ];
+
+const char *LOGIC_EVENT_TYPE_NAMES[L_EVENT_MAX] = 	{	"None",
+		"GPIO RAISING",
+		"GPIO FALLING",
+		"ADC ABOVE",
+		"ADC BELOW",
+		"NET DISCONNECT",
+		"NET CONNECT",
+		"TEMP ABOVE",
+		"TEMP BELOW",
+		"REG EQUAL",
+		"REG ABOVE",
+		"REG BELOW",
+		"REPEAT TIMER",
+		"GPIO RAISING DEBOUNCED",
+		"GPIO FALLING DEBOUNCED",
+		"BOOT",
+		"EVERY_TICK",
+		"DATE AFTER",
+		"DATE BEFORE",
+		"TIME AFTER",
+		"TIME BEFORE",
+		"NET MSG" };
+
+const char *LOGIC_ACTION_TYPE_NAMES[L_ACTION_MAX] = {	"None",
+		"GPIO HIGH",
+		"GPIO LOW",
+		"PWM DUTY",
+		"INCREMENT REG",
+		"DECREMENT REG",
+		"CLEAR REG",
+		"SET REG",
+		"NET MSG",
+		"SERIAL MSG",
+		"CONTROL RELAY",
+		"SEND COSM",
+		"SERVO POS" };
+
+#else
+
+extern const char *LOGIC_EVENT_TYPE_NAMES[L_EVENT_MAX];
+extern LOGIC_CONDITION *LogicConditions;
 
 #endif
 
