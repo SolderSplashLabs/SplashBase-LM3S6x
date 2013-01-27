@@ -221,6 +221,13 @@ ui16 *tempShort ;
 	SSIDataPutNonBlocking(SSI0_BASE, (ui16)(servoOffset<<8 | servoCnt));
 	tempShort = (ui16 *)positions;
 
+	/*
+	for (i=0; i<servoCnt; i++)
+	{
+		SSIDataPut(SSI0_BASE, tempShort[i]);
+	}
+	*/
+
 	SSIDataPutNonBlocking(SSI0_BASE, tempShort[0]);
 	SSIDataPutNonBlocking(SSI0_BASE, tempShort[1]);
 	SSIDataPutNonBlocking(SSI0_BASE, tempShort[2]);
