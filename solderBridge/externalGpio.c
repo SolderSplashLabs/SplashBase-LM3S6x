@@ -365,7 +365,6 @@ ui32 error = 0;
 //
 // ExtGpio_SetDirection : Set the direction of each bit of the selected PCA9555D
 // A set bit indicates an output
-// port -
 //
 // *****************************************************************************
 void ExtGpio_SetDirection ( ui8 port, ui16 mask, ui16 dir )
@@ -397,6 +396,22 @@ void ExtGpio_SetPort ( ui8 port, ui16 mask, ui16 value )
 		IoExpanders.output[ port ] &= ~mask;
 		IoExpanders.output[ port ] |= value;
 		IoExpanders.updateOutput |= (1<<port);
+	}
+}
+
+// *****************************************************************************
+//
+// ExtGpio_SetPort : Change port output
+//
+// *****************************************************************************
+void ExtGpio_GetPort ( ui8 port, ui16 *buffer )
+{
+	if ( buffer != 0 )
+	{
+		if ( port < PCA_MAX )
+		{
+			*buffer = IoExpanders.input[port];
+		}
 	}
 }
 

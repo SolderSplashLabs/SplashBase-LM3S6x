@@ -276,10 +276,11 @@ typedef struct
     unsigned char LogicConditionsBuffer[ 560 ];
     //LOGIC_CONDITION LogicConditions[LOGIC_MAX_CONDITIONS];
 
+    unsigned char UserGpioDirection[16];
     //
     //! Padding to ensure the whole structure is 256 bytes long.
     //
-    unsigned char ucReserved2[247];
+    unsigned char ucReserved2[231];
 }
 tConfigParameters;
 

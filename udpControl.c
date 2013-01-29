@@ -275,6 +275,8 @@ volatile ui8 *pucData;
 static void SSC_ProcessCommand(struct udp_pcb *pcb, struct pbuf *p, struct ip_addr *addr)
 {
 volatile ui8 *pucData;
+ui32 *ptLong;
+ui32 *ptLong2;
 ui16 tempInt;
 ui32 tempLong;
 ui32 tempLong2;
@@ -437,6 +439,8 @@ ui8 replyWithStatus = 0;
 		case SSC_RESET :
 			if (('k' == pucData[1]) && ('i' == pucData[2]) && ('c' == pucData[3]) && ('k' == pucData[4]))
 			{
+				// We have been told to reboot
+				// TODO : Do we need to do anything else?
 				HWREG(NVIC_APINT) = (NVIC_APINT_VECTKEY | NVIC_APINT_SYSRESETREQ);
 			}
 		break;
@@ -455,11 +459,15 @@ ui8 replyWithStatus = 0;
 		break;
 		
 		case SSC_MANUAL_GPIO_DIR :
-			//UserSetGpioDirection( port, mask, val );
+			ptLong = &pucData[2];
+			ptLong2 = &pucData[6];
+			UserGpioDirection( pucData[1], *ptLong, *ptLong2 );
 		break;
 
 		case SSC_MANUAL_GPIO_DATA :
-			//UserSetGpioOutputs ( port, mask, val );
+			ptLong = &pucData[2];
+			ptLong2 = &pucData[6];
+			UserGpioSetOutputs( pucData[1], *ptLong, *ptLong2 );
 		break;
 
 		case SSC_LOGIC_INSERT_CON :

@@ -29,6 +29,8 @@
 
 #include "solderBridge\externalGpio.h"
 
+static const char * const g_pcHex = "0123456789abcdef";
+
 // TODO : CPU Temp
 
 //*****************************************************************************
@@ -65,6 +67,9 @@ extern int CMD_intensity (int argc, char **argv);
 extern int CMD_ipconfig (int argc, char **argv);
 extern int CMD_GetTemperature (int argc, char **argv);
 extern int CMD_GetLogic (int argc, char **argv);
+extern int CMD_GetPort (int argc, char **argv);
+extern int CMD_SetPort (int argc, char **argv);
+extern int CMD_SetPortDir (int argc, char **argv);
 
 // Serial Banner, this looks mangled but in putty it looks good!
 const char WELCOME_MSG[] = "\n  ____        _     _           ____        _           _	 _          _\n\
@@ -92,9 +97,9 @@ tCmdLineEntry g_sCmdTable[] =
     {"reboot",		CMD_Reboot,	 			" : Reboot"},
     {"uptime",		CMD_Uptime,	 			" : Power up time"},
     {"relay",		CMD_Relay,	 			" : optional:<relaynumber> <on/off>"},
-    {"setport",		CMD_NotImplemented,	 	" : <portletter> <mask> <portdata> - set port output"},
-    {"getport",		CMD_NotImplemented,	 	" : <portletter> - get port status"},
-    {"setportdir",	CMD_NotImplemented,	 	" : <portletter> mask direction - set port direction"},
+    {"setport",		CMD_SetPort,	 		" : <portletter> <mask> <portdata> - set port output"},
+    {"getport",		CMD_GetPort,	 		" : <portletter> - get port status"},
+    {"setportdir",	CMD_SetPortDir,	 		" : <portletter> mask direction - set port direction"},
     {"getportdir",	CMD_NotImplemented,	 	" : <portletter> - get port direction"},
     {"getadcs",		CMD_Adcs,	 			" : return ADC values for each port"},
     {"factorydefault",		CMD_Factory,	" : factory default settings"},
@@ -625,3 +630,106 @@ ui8 i = 0;
 	return (0);
 }
 
+//*****************************************************************************
+//
+// Command: CMD_GetPort
+//
+//
+//
+//*****************************************************************************
+int CMD_GetPort (int argc, char **argv)
+{
+ui32 portStatus = 0;
+
+	if ( argc > 1 )
+	{
+		if ( UserGpioGet(ustrtoul(argv[1], 0, 10), &portStatus) )
+		{
+			UARTprintf("%08X \n", portStatus);
+		}
+		else
+		{
+			// Port out of range
+			UARTprintf("Out of range");
+		}
+	}
+	return (0);
+}
+
+//*****************************************************************************
+//
+// htoi - Ascii Hex to Integer
+//
+//
+//*****************************************************************************
+ui32 htoi ( char *s )
+{
+ui32 result = 0;
+ui8 i = 0;
+ui8 x = 0;
+
+	for (i=0; s[i] !='\0'; i++ )
+	{
+		for (x=0; g_pcHex[x] != '\0'; x++ )
+		{
+			if ( s[i] == g_pcHex[x])
+			{
+				result <<= 4;
+				result |= x;
+				break;
+			}
+		}
+	}
+
+	return(result);
+}
+
+//*****************************************************************************
+//
+// Command: CMD_SetPort
+//
+//
+//
+//*****************************************************************************
+int CMD_SetPort (int argc, char **argv)
+{
+ui32 portVal = 0;
+ui32 mask = 0;
+ui8 port = 0;
+
+	if ( argc > 3 )
+	{
+		port = ustrtoul(argv[1], 0, 10);
+		mask = htoi(argv[2]);
+		portVal = htoi(argv[3]);
+
+		UserGpioSetOutputs( port, mask, portVal );
+	}
+
+	return (0);
+}
+
+//*****************************************************************************
+//
+// Command: CMD_SetPortDir
+//
+//
+//
+//*****************************************************************************
+int CMD_SetPortDir (int argc, char **argv)
+{
+ui32 portVal = 0;
+ui32 mask = 0;
+ui8 port = 0;
+
+	if ( argc > 3 )
+	{
+		port = ustrtoul(argv[1], 0, 10);
+		mask = htoi(argv[2]);
+		portVal = htoi(argv[3]);
+
+		UserGpioDirection( port, mask, portVal );
+	}
+
+	return (0);
+}

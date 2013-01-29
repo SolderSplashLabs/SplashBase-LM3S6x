@@ -20,6 +20,7 @@
 #include "driverlib/systick.h"
 
 #include "datatypes.h"
+#include "solderBridge/externalGpio.h"
 
 #define _USER_GPIO_
 #include "userGpioControl.h"
@@ -67,48 +68,20 @@ void UserGpio_AppClrMask( ui8 portNo, ui32 mask )
 
 //*****************************************************************************
 //
-// UserSetGpioInput - Set GPIO as an Input
+// UserGpioDirection - Set GPIO direction
+//
+// pins - each bit represents a GPIO pin 1=output bit0=pin0
 //
 //*****************************************************************************
-bool UserGpioDirInput ( ui8 portNo, ui32 pins )
+bool UserGpioDirection ( ui8 portNo, ui32 mask, ui32 pins )
 {
 bool result = false;
 
 	if (portNo < GPIO_PORT_MAX_MCU)
 	{
 		// If we have a relay add-on stop it's GPIO being changed
-		pins = UserGpio_AppGetMask(portNo, pins);
-
-		GPIOPinTypeGPIOInput(GPIO_REGISTERS[portNo], pins);
-
-		result = true;
-	}
-	else if (portNo < GPIO_PORT_TOTAL)
-	{
-		// TODO : Tell solderbridge module to set supplied pins on the port as inputs
-		result = true;
-	}
-	else
-	{
-		// Out of range!
-	}
-
-	return( result );
-}
-
-//*****************************************************************************
-//
-// UserSetGpioOutput - Set GPIO as an output
-//
-//*****************************************************************************
-bool UserGpioDirOutput ( ui8 portNo,  ui32 mask, ui32 pins )
-{
-bool result = false;
-
-	if (portNo < GPIO_PORT_MAX_MCU)
-	{
-		// If we have a relay add-on stop it's GPIO being changed
-		pins = UserGpio_AppGetMask(portNo, pins);
+		mask = UserGpio_AppGetMask(portNo, mask);
+		pins = pins & mask;
 
 		GPIOPinTypeGPIOOutput(GPIO_REGISTERS[portNo], pins);
 
@@ -116,8 +89,7 @@ bool result = false;
 	}
 	else if (portNo < GPIO_PORT_TOTAL)
 	{
-		// TODO : Tell solderbridge module to set supplied pins on the port as outputs
-		ExtGpio_SetDirection( portNo-GPIO_PORT_MAX_MCU, mask, pins );
+		ExtGpio_SetDirection( (portNo-GPIO_PORT_MAX_MCU), mask, pins );
 		result = true;
 	}
 	else
@@ -147,9 +119,6 @@ bool result = false;
 		// Apply the change to the microcontrollers ports
 		portRegister = GPIO_REGISTERS[portNo];
 
-		// If we have a relay add-on stop it's GPIO being changed via this function
-		mask = UserGpio_AppGetMask(portNo, mask);
-
 		GPIOPinWrite(portRegister, mask, newVal);
 		result = true;
 	}
@@ -165,4 +134,37 @@ bool result = false;
 	}
 
 	return( result );
+}
+
+//*****************************************************************************
+//
+// UserGpioGet - Retrieves the selected port pin status
+//
+//*****************************************************************************
+ui32 UserGpioGet ( ui8 portNo, ui32 *buffer )
+{
+bool result = false;
+
+	if (buffer != 0)
+	{
+		if (portNo < GPIO_PORT_MAX_MCU)
+		{
+			// Get MCU port
+			*buffer = GPIOPinRead(GPIO_REGISTERS[portNo], 0xFF);
+			result = true;
+		}
+		else if ( portNo < (GPIO_PORT_TOTAL))
+		{
+			// Get External Port
+			// This change effects external I/O
+			ExtGpio_GetPort( (portNo-GPIO_PORT_MAX_MCU), buffer );
+			result = true;
+		}
+		else
+		{
+			// Out of range!
+		}
+	}
+
+	return ( result );
 }

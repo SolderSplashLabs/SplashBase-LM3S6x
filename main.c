@@ -38,7 +38,6 @@
 
 #include "logicController.h"
 #include "config.h"
-
 #include "ethernetControl.h"
 #include "adcControl.h"
 #include "colourModes.h"
@@ -46,6 +45,7 @@
 #include "relayControl.h"
 #include "udpControl.h"
 #include "solderBridge/solderBridgeSpi.h"
+#include "solderBridge/externalGpio.h"
 #include "time.h"
 #include "serialControl.h"
 
