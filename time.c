@@ -68,9 +68,12 @@ void Time_SetUnix( ui32 timeStamp )
 // Time_StampNow
 //
 // *****************************************************************************
-ui32 Time_StampNow ( void )
+ui32 Time_StampNow ( si32 minOffset )
 {
-	return (UnixTime);
+	// Convert to seconds
+	minOffset *= 60;
+
+	return (UnixTime+minOffset);
 }
 
 // *****************************************************************************

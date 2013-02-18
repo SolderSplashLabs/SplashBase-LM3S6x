@@ -16,7 +16,7 @@ typedef struct TIME_STRUCT
 } TIME_STRUCT;
 
 void Time_Task ( void );
-ui32 Time_StampNow ( void );
+ui32 Time_StampNow ( si32 minOffset );
 ui32 Time_Uptime ( void );
 void Time_Get ( TIME_STRUCT *time );
 void Time_SetUnix( ui32 timeStamp );

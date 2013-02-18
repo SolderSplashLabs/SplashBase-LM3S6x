@@ -70,6 +70,7 @@ extern int CMD_GetLogic (int argc, char **argv);
 extern int CMD_GetPort (int argc, char **argv);
 extern int CMD_SetPort (int argc, char **argv);
 extern int CMD_SetPortDir (int argc, char **argv);
+extern int CMD_SelfTest (int argc, char **argv);
 
 // Serial Banner, this looks mangled but in putty it looks good!
 const char WELCOME_MSG[] = "\n  ____        _     _           ____        _           _	 _          _\n\
@@ -92,7 +93,7 @@ tCmdLineEntry g_sCmdTable[] =
     {"?",     		CMD_help,      			" : Display list of commands" },
     {"setname",  	CMD_NotImplemented,     " : name - Set SplashBase name"},
     {"ipconfig", 	CMD_ipconfig,  			" : Show network config"},
-    {"date",      	CMD_Date,   			" : <update> - Display the date and time. optional update command to force an update via NTP"},
+    {"date",      	CMD_Date,   			" : <update>, <offset> <set> - Display the date and time. optional update command to force an update via NTP, offset modifies the minutes offset on the clock to use"},
     {"rgb",			CMD_Rgb,				" : <mode> <toprgb> <bottomrgb> - Mode 0-4, colours 32bit hex (html format)"},
     {"reboot",		CMD_Reboot,	 			" : Reboot"},
     {"uptime",		CMD_Uptime,	 			" : Power up time"},
@@ -109,6 +110,7 @@ tCmdLineEntry g_sCmdTable[] =
     {"dmxupdate",	CMD_NotImplemented,		" : offset value"},
     {"gettemp", 	CMD_GetTemperature,		" : Retrieve Temperature"},
     {"getlogic",	CMD_GetLogic,			" : optional:<number> - List Logic Statements"},
+    {"selftest",	CMD_SelfTest,			" : Factory Test with test rig"},
     { 0, 0, 0 }
 };
 
@@ -314,17 +316,41 @@ tTime currentTime;
     (void) argc;
     (void) argv;
 
-    //if ((argc > 1) && ( *(argv[1]) == 'u'))
-    if ((argc > 1) && ( argv[1][0] == 'u'))
+    if (argc > 1)
     {
-    	UARTprintf("Updating Clock Via SNTP \n");
-    	SntpGetTime();
+		if ( 'u' == argv[1][0] )
+		{
+			UARTprintf("Updating Clock Via SNTP \n");
+			SntpGetTime();
+		}
+		else if ( 'o' == argv[1][0] )
+		{
+			// offset
+
+			if ((argc > 2) && ( 's' == argv[2][0] ))
+			{
+				// set - update the time offset on the clock, value in signed minutes
+				if ("-" == argv[3][0])
+				{
+					g_sParameters.timeOffset = ustrtoul(argv[3], 1, 10);
+					// Make it negative
+					g_sParameters.timeOffset *= -1;
+				}
+				else
+				{
+					g_sParameters.timeOffset = ustrtoul(argv[3], 0, 10);
+				}
+			}
+
+			// Print current offset
+			UARTprintf("Time offset : %i\n", g_sParameters.timeOffset );
+		}
     }
-    else
-    {
-    	ulocaltime(Time_StampNow(), &currentTime);
-    	UARTprintf("%02d-%02d-%02d %02d:%02d:%02d GMT\n", currentTime.usYear, (currentTime.ucMon+1), currentTime.ucMday, currentTime.ucHour, currentTime.ucMin, currentTime.ucSec);
-    }
+	else
+	{
+		ulocaltime(Time_StampNow(g_sParameters.timeOffset), &currentTime);
+		UARTprintf("%02d-%02d-%02d %02d:%02d:%02d GMT\n", currentTime.usYear, (currentTime.ucMon+1), currentTime.ucMday, currentTime.ucHour, currentTime.ucMin, currentTime.ucSec);
+	}
 
     return (0);
 }
@@ -594,7 +620,9 @@ int CMD_GetTemperature (int argc, char **argv)
 {
 ui32 internalDegC = AdcGetInternalTemp();
 
-	UARTprintf("MCU : %u°C\n", internalDegC);
+ui32 tempSensor = AdcGetTemperature();
+
+	UARTprintf("MCU : %u°C - Sensor : %u°C\n", internalDegC, tempSensor);
 
 	return (0);
 }
@@ -733,3 +761,16 @@ ui8 port = 0;
 
 	return (0);
 }
+
+//*****************************************************************************
+//
+// Command: CMD_SetPortDir
+//
+//
+//
+//*****************************************************************************
+int CMD_SelfTest (int argc, char **argv)
+{
+	SelfTest();
+}
+

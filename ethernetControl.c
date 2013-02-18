@@ -86,7 +86,7 @@ void Ethernet_GetMacAddress ( ui8 *pBuf )
 {
 	if ( pBuf != 0 )
 	{
-		memcpy(pBuf, (ui8 *)macAddr, 8);
+		memcpy(pBuf, (ui8 *)macAddr, 6);
 	}
 }
 

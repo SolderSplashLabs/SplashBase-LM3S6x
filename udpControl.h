@@ -15,6 +15,7 @@
 #define SSC_UDP_PORT_TX		11029
 
 #define SSC_REPLY_LEN		99
+#define SSC_INFO_MSG_LEN	99
 
 
 

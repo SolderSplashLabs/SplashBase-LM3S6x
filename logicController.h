@@ -13,7 +13,6 @@
 // We have a number of "Registers" that actions can effect and can then in turn generate new events
 #define LOGIC_NUM_OF_REGISTERS	10
 #define LOGIC_MAX_CONDITIONS	20
-#define GPIO_PORTS_MAX 			7
 
 typedef enum LOGIC_EVENT_TYPE
 {
@@ -93,6 +92,7 @@ typedef struct LOGIC_ACTION
 };
 */
 
+// NOTE : Theres a hole in the structure = wasted RAM
 typedef struct LOGIC_ACTIONS
 {
 	LOGIC_ACTION_TYPE actionType[16];
@@ -106,7 +106,8 @@ typedef struct LOGIC_ACTIONS
 volatile LOGIC_ACTIONS LogicActions;
 
 // a cache of the GPIO Ports, that are processed as a single snapshot
-ui32 LogicGpioData[ GPIO_PORTS_MAX ];
+ui32 LogicGpioData[ GPIO_PORT_TOTAL ];
+ui32 LogicGpioDataPrev[ GPIO_PORT_TOTAL ];
 
 const char *LOGIC_EVENT_TYPE_NAMES[L_EVENT_MAX] = 	{	"None",
 		"GPIO RAISING",

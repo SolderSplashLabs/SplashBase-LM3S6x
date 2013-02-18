@@ -113,6 +113,7 @@ void InitialiseHW ( void )
 	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOE);
 	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOF);
 	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOG);
+	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOH);
 	SysCtlPeripheralEnable(SYSCTL_PERIPH_UART0);
 	SysCtlPeripheralEnable(SYSCTL_PERIPH_UART1);
 
@@ -131,6 +132,7 @@ void InitialiseHW ( void )
 	SysCtlPeripheralSleepEnable(SYSCTL_PERIPH_GPIOE);
 	SysCtlPeripheralSleepEnable(SYSCTL_PERIPH_GPIOF);
 	SysCtlPeripheralSleepEnable(SYSCTL_PERIPH_GPIOG);
+	SysCtlPeripheralSleepEnable(SYSCTL_PERIPH_GPIOH);
 	SysCtlPeripheralSleepEnable(SYSCTL_PERIPH_UART0);
 	SysCtlPeripheralSleepEnable(SYSCTL_PERIPH_UART1);
 	SysCtlPeripheralSleepEnable(SYSCTL_PERIPH_ETH);

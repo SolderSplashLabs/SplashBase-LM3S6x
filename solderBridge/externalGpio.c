@@ -287,8 +287,8 @@ ui32 error = 0;
 				// TODO : Bad, Don't want a hang up!
 			}
 
-			*portValue <<= 8;
-			*portValue |= I2CMasterDataGet(I2C0_MASTER_BASE);
+			//*portValue <<= 8;
+			*portValue |= (I2CMasterDataGet(I2C0_MASTER_BASE) << 8);
 
 			result = true;
 		}
@@ -330,8 +330,9 @@ ui32 error = 0;
 
 	if ( I2C_MASTER_ERR_NONE == error )
 	{
-		// No error and we got acked, send the MSB First
-		I2CMasterDataPut(I2C0_MASTER_BASE, (ui8)(value>>8));
+		// No error and we got acked, send the LSB First
+		//I2CMasterDataPut(I2C0_MASTER_BASE, (ui8)(value>>8));
+		I2CMasterDataPut(I2C0_MASTER_BASE, (ui8)(0x00FF & value));
 		I2CMasterControl(I2C0_MASTER_BASE, I2C_MASTER_CMD_BURST_SEND_CONT);
 
 		while(I2CMasterBusy(I2C0_MASTER_BASE))
@@ -344,7 +345,7 @@ ui32 error = 0;
 		if ( I2C_MASTER_ERR_NONE == error )
 		{
 			// No error and we got acked, send the last byte
-			I2CMasterDataPut(I2C0_MASTER_BASE, (ui8)(value));
+			I2CMasterDataPut(I2C0_MASTER_BASE, (ui8)(value>>8));
 			I2CMasterControl(I2C0_MASTER_BASE, I2C_MASTER_CMD_BURST_SEND_FINISH);
 
 			while(I2CMasterBusy(I2C0_MASTER_BASE))

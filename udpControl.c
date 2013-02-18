@@ -28,9 +28,11 @@
 #include "colourModes.h"
 #include "logicController.h"
 #include "solderBridge\solderBridgeSpi.h"
+#include "userGpioControl.h"
 
 #define UDPCONTROL
 #include "udpControl.h"
+
 
 //*****************************************************************************
 //
@@ -265,6 +267,178 @@ volatile ui8 *pucData;
     // Free the pbuf.
     //
     pbuf_free(p);	
+}
+
+/*
+bool SSC_CMD_RelayCon ( ui8 *buffer, ui8 len );
+bool SSC_CMD_PwmDuty ( ui8 *buffer, ui8 len );
+bool SSC_CMD_PwmDutyAll ( ui8 *buffer, ui8 len );
+bool SSC_CMD_PwmFreq ( ui8 *buffer, ui8 len );
+bool SSC_CMD_PwmDColorMode ( ui8 *buffer, ui8 len );
+bool SSC_CMD_SetUnitName ( ui8 *buffer, ui8 len );
+bool SSC_CMD_SetRelayName ( ui8 *buffer, ui8 len );
+bool SSC_CMD_Reset ( ui8 *buffer, ui8 len );
+bool SSC_CMD_OutputsOnOff ( ui8 *buffer, ui8 len );
+bool SSC_CMD_GpioDir ( ui8 *buffer, ui8 len );
+bool SSC_CMD_GpioData ( ui8 *buffer, ui8 len );
+bool SSC_CMD_LogicAdd ( ui8 *buffer, ui8 len );
+bool SSC_CMD_SetServoPos ( ui8 *buffer, ui8 len );
+
+
+//*****************************************************************************
+// SSC_ProcessCommand
+// Process received UDP commands
+//
+//*****************************************************************************
+static void SSC_ProcessCommand(struct udp_pcb *pcb, struct pbuf *p, struct ip_addr *addr)
+{
+volatile ui8 *pucData;
+
+	// UDP packet is already checksumed so packet should be valid
+
+	pucData = p->payload;
+
+	switch( pucData[0] )
+	{
+		case SSC_PING :
+			SSC_CMD_RelayCon
+		break;
+
+		case SSC_RELAY_CON :
+
+		break;
+
+		case SSC_PWM_DUTY :
+
+		break;
+
+		case SSC_PWM_DUTY_ALL :
+
+		break;
+
+		case SSC_PWM_FREQ :
+
+		break;
+
+		case SSC_PWM_COLOUR_MODE :
+
+		break;
+
+		case SSC_SET_UNIT_NAME :
+
+		break;
+
+		case SSC_SET_RELAY_NAME :
+
+		break;
+
+		case SSC_RESET :
+
+		break;
+
+		case SSC_OUTPUTS_ON_OFF :
+
+		break;
+
+		case SSC_MANUAL_GPIO_DIR :
+
+		break;
+
+		case SSC_MANUAL_GPIO_DATA :
+
+		break;
+
+		case SSC_LOGIC_INSERT_CON :
+
+		break;
+
+		case SSC_SB_SERVOPOS :
+
+		break;
+
+		default :
+
+		break;
+	}
+
+	pbuf_free(p);
+
+	if ( replyWithStatus )
+	{
+		SSC_SendReply(p,addr);
+	}
+
+}
+*/
+
+void SSC_SendPortInfo ( struct ip_addr *addr, ui16 reason )
+{
+bool result = false;
+volatile ui8 *pucData;
+struct pbuf *p;
+ui8 pos;
+ui8 i = 0;
+ui32 ulIPAddress = 0;
+
+	p = pbuf_alloc(PBUF_TRANSPORT, SSC_INFO_MSG_LEN, PBUF_RAM);
+
+	if(p == NULL)
+	{
+	   // No ram!
+	}
+	else
+	{
+		pucData = p->payload;
+
+		// Message Header
+		pucData[SSC_POS_STARTBYTE] = 0xE1;
+
+		// Our IP
+		ulIPAddress = lwIPLocalIPAddrGet();
+		pucData[SSC_POS_IP] = 0x000000FF & (ulIPAddress >> 24);
+		pucData[SSC_POS_IP + 1] = 0x000000FF & (ulIPAddress >> 16);
+		pucData[SSC_POS_IP + 2] = 0x000000FF & (ulIPAddress >> 8);
+		pucData[SSC_POS_IP + 3] = 0x000000FF & (ulIPAddress);
+
+		// MAC Addr
+		Ethernet_GetMacAddress(&pucData[SSC_POS_MAC]);
+
+		// SW Rev - TODO : Move to Defines & centralise
+		pucData[SSC_POS_SWREV] = SW_REV_MAJOR;
+		pucData[SSC_POS_SWREV+1] = SW_REV_MINOR;
+
+		pos = SSC_POS_SWREV+2;
+		pucData[pos++] = reason;
+		pucData[pos++] = reason >> 8;
+
+		// Total number of GPIO ports
+		pucData[pos++] = GPIO_PORT_TOTAL;
+
+		// Each GPIO port to follow
+		for ( i=0; i<GPIO_PORT_TOTAL; i++ )
+		{
+			*(ui32 *)(&pucData[pos]) = 0;
+			UserGpioGet(i, (ui32 *)&pucData[pos]);
+			pos += 4;
+		}
+
+		if ( 0xFFFFFFFF == addr )
+		{
+			// Broadcast
+			addr = IP_ADDR_BROADCAST;
+		}
+		else
+		{
+			// Unicast
+		}
+
+		udp_sendto(UdpControlPort, p, addr, SSC_UDP_PORT_TX);
+
+		//
+		// Free the pbuf.
+		//
+		pbuf_free(p);
+	}
 }
 
 //*****************************************************************************

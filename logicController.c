@@ -66,7 +66,7 @@ ui8 i = 0;
 
 	if ( LogicRunning )
 	{
-		ulocaltime( Time_StampNow(), &currentTime );
+		ulocaltime( Time_StampNow(g_sParameters.timeOffset), &currentTime );
 		LogicCapturePortData();
 
 		networkConnected = Ethernet_Connected();
@@ -388,14 +388,14 @@ volatile ui8 tempUi8 = 0;
 		break;
 
 		case L_EVENT_DATE_AFTER :
-			if ( param1 > Time_StampNow())
+			if ( param1 > Time_StampNow(g_sParameters.timeOffset))
 			{
 				result = true;
 			}
 		break;
 
 		case L_EVENT_DATE_BEFORE :
-			if ( param1 < Time_StampNow())
+			if ( param1 < Time_StampNow(g_sParameters.timeOffset))
 			{
 				result = true;
 			}
@@ -612,7 +612,18 @@ void LogicStartStop ( bool start )
 bool LogicCheckPinHigh ( ui8 conditionNo )
 {
 bool result = false;
+volatile ui32 param1 = LogicConditions[ conditionNo ].eventParam1;
+volatile ui32 param2 = LogicConditions[ conditionNo ].eventParam2;
 
+	if ( param1 < GPIO_PORT_TOTAL )
+	{
+		if (~(LogicGpioDataPrev[param1] & param2) & (LogicGpioData[param1] & param2))
+		{
+			// A bit has been pulled high
+			result = true;
+		}
+	}
+/*
 	if ( LogicGpioData[LogicConditions[ conditionNo ].eventParam1] & LogicConditions[ conditionNo ].eventParam2  )
 	{
 		result = true;
@@ -621,7 +632,7 @@ bool result = false;
 	{
 		result = false;
 	}
-
+*/
 	return( result );
 }
 
@@ -633,7 +644,23 @@ bool result = false;
 bool LogicCheckPinLow ( ui8 conditionNo )
 {
 bool result = false;
+volatile ui32 param1 = LogicConditions[ conditionNo ].eventParam1;
+volatile ui32 param2 = LogicConditions[ conditionNo ].eventParam2;
 
+if ( param1 < GPIO_PORT_TOTAL )
+	{
+		if (( LogicGpioDataPrev[param1] & param2 ) & ~(LogicGpioData[param1] & param2))
+		{
+			// A bit has been lowered
+			result = true;
+		}
+		else
+		{
+			// A bit has been pulled high
+		}
+	}
+
+/*
 	if ( LogicGpioData[LogicConditions[ conditionNo ].eventParam1] & LogicConditions[ conditionNo ].eventParam2  )
 	{
 		result = false;
@@ -642,6 +669,7 @@ bool result = false;
 	{
 		result = true;
 	}
+	*/
 
 	return( result );
 }
@@ -704,7 +732,7 @@ ui32 param2 = LogicConditions[conditionNo].actionParam2;
 		break;
 
 		case L_ACTION_NET_MSG :
-			//UARTprintf("Action : L_ACTION_NET_MSG\r\n");
+			SSC_SendPortInfo(param1, param2);
 		break;
 
 		case L_ACTION_SERIAL_MSG :
@@ -779,7 +807,9 @@ ui8 pin = 0;
 //*****************************************************************************
 void LogicCapturePortData ( void )
 {
+ui8 i = 0;
 	// Record the status of all the GPIO ports for interrogation
+	/*
 	LogicGpioData[0] = GPIOPinRead(GPIO_REGISTERS[0], 0xFF);
 	LogicGpioData[1] = GPIOPinRead(GPIO_REGISTERS[1], 0xFF);
 	LogicGpioData[2] = GPIOPinRead(GPIO_REGISTERS[2], 0xFF);
@@ -787,6 +817,13 @@ void LogicCapturePortData ( void )
 	LogicGpioData[4] = GPIOPinRead(GPIO_REGISTERS[4], 0xFF);
 	LogicGpioData[5] = GPIOPinRead(GPIO_REGISTERS[5], 0xFF);
 	LogicGpioData[6] = GPIOPinRead(GPIO_REGISTERS[6], 0xFF);
+	*/
+
+	for ( i=0; i<GPIO_PORT_TOTAL; i++ )
+	{
+		LogicGpioDataPrev[i] = LogicGpioData[i];
+		UserGpioGet(i, &LogicGpioData[i]);
+	}
 }
 
 //*****************************************************************************
