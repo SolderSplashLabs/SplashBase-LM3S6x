@@ -9,11 +9,15 @@
 
 */
 
+#include "SplashBaseHeaders.h"
+
+/*
 #include "inc/hw_ints.h"
 #include "inc/hw_memmap.h"
 #include "inc/hw_nvic.h"
 #include "inc/hw_sysctl.h"
 #include "inc/hw_types.h"
+#include "driverlib/gpio.h"
 
 #include "utils/ustdlib.h"
 #include "utils/uartstdio.h"
@@ -24,14 +28,16 @@
 
 #include "time.h"
 #include "config.h"
-#include "globals.h"
+#include "ethernetControl.h"
 #include "logicController.h"
-
+#include "relayControl.h"
 #include "solderBridge\externalGpio.h"
+
+#include "serialControl.h"
+*/
 
 static const char * const g_pcHex = "0123456789abcdef";
 
-// TODO : CPU Temp
 
 //*****************************************************************************
 //
@@ -96,7 +102,7 @@ tCmdLineEntry g_sCmdTable[] =
     {"date",      	CMD_Date,   			" : <update>, <offset> <set> - Display the date and time. optional update command to force an update via NTP, offset modifies the minutes offset on the clock to use"},
     {"rgb",			CMD_Rgb,				" : <mode> <toprgb> <bottomrgb> - Mode 0-4, colours 32bit hex (html format)"},
     {"reboot",		CMD_Reboot,	 			" : Reboot"},
-    {"uptime",		CMD_Uptime,	 			" : Power up time"},
+    //{"uptime",		CMD_Uptime,	 			" : Power up time"},
     {"relay",		CMD_Relay,	 			" : optional:<relaynumber> <on/off>"},
     {"setport",		CMD_SetPort,	 		" : <portletter> <mask> <portdata> - set port output"},
     {"getport",		CMD_GetPort,	 		" : <portletter> - get port status"},
@@ -109,8 +115,8 @@ tCmdLineEntry g_sCmdTable[] =
     {"bridgelist",	CMD_BridgeList,			" : List SPI bridges"},
     {"dmxupdate",	CMD_NotImplemented,		" : offset value"},
     {"gettemp", 	CMD_GetTemperature,		" : Retrieve Temperature"},
-    {"getlogic",	CMD_GetLogic,			" : optional:<number> - List Logic Statements"},
-    {"selftest",	CMD_SelfTest,			" : Factory Test with test rig"},
+    //{"getlogic",	CMD_GetLogic,			" : optional:<number> - List Logic Statements"},
+    //{"selftest",	CMD_SelfTest,			" : Factory Test with test rig"},
     { 0, 0, 0 }
 };
 
@@ -192,6 +198,34 @@ static char first = true;
 }
 
 
+// --------------------------------------------------------------------------------------
+// SP_Init
+// Initalise the SplashPixel control lines, bus and framebuffer
+// --------------------------------------------------------------------------------------
+void Serial_Init ( void )
+{
+	if ( 0 == SERIAL_UART )
+	{
+		//
+		// Configure the Port 0 pins appropriately.
+		//
+		GPIOPinTypeUART(PIN_U0RX_PORT, PIN_U0RX_PIN);
+		GPIOPinTypeUART(PIN_U0TX_PORT, PIN_U0TX_PIN);
+
+		UARTStdioInit(SERIAL_UART);
+	}
+	else if ( 1 == SERIAL_UART )
+	{
+		//
+		// Configure the Port 1 pins appropriately.
+		//
+		GPIOPinTypeUART(PIN_U1RX_PORT, PIN_U1RX_PIN);
+		GPIOPinTypeUART(PIN_U1TX_PORT, PIN_U1TX_PIN);
+
+		UARTStdioInit(SERIAL_UART);
+	}
+}
+
 
 //*****************************************************************************
 //
@@ -248,6 +282,8 @@ int CMD_NotImplemented (int argc, char **argv)
 int CMD_ipconfig (int argc, char **argv)
 {
 ui32 temp;
+bool printConf = false;
+volatile struct ip_addr ipaddr;
 ui8 *tempChar;
 ui8 macAddr[8];
 
@@ -256,26 +292,98 @@ ui8 macAddr[8];
 
     tempChar = (ui8 *)&temp;
 
-    if ( g_sParameters.ucFlags & CONFIG_FLAG_STATICIP )
+    if (argc > 1)
     {
-    	UARTprintf("Static IP\n");
+    	if ( 'd' == argv[1][0] )
+    	{
+    		// TODO : set to dynamic ip
+    	}
+    	else if ( 's' == argv[1][0] )
+    	{
+			if (argc > 4)
+			{
+				printConf = true;
+
+				if ( inet_aton(&argv[2][0], &ipaddr ) )
+				{
+					// Valid Ip
+					g_sParameters.ulStaticIP = ipaddr.addr;
+				}
+				else
+				{
+					printConf = false;
+				}
+
+				if ( inet_aton(&argv[3][0], &ipaddr ) )
+				{
+					// Valid Netmask Ip
+					g_sParameters.ulSubnetMask = ipaddr.addr;
+				}
+				else
+				{
+					printConf = false;
+				}
+
+				if ( inet_aton(&argv[4][0], &ipaddr ) )
+				{
+					// Valid Gateway Ip
+					g_sParameters.ulGatewayIP = ipaddr.addr;
+				}
+				else
+				{
+					printConf = false;
+				}
+
+				if (printConf)
+				{
+					// Everything accepted
+					g_sParameters.flags |= CONFIG_FLAG_STATICIP;
+					ConfigUpdateIPAddress();
+				}
+				else
+				{
+					// Error revert to dynamic
+					g_sParameters.flags &= ~CONFIG_FLAG_STATICIP;
+				}
+
+			}
+    	}
     }
     else
     {
-    	UARTprintf("Dynamic IP\n");
+    	// Just print
+    	printConf = true;
     }
 
-    Ethernet_GetMacAddress(&macAddr);
-    UARTprintf("MAC : %02X-%02X-%02X-%02X-%02X-%02X \n", macAddr[0],macAddr[1],macAddr[2],macAddr[3],macAddr[4],macAddr[5] );
+    if ( printConf )
+    {
+		if ( g_sParameters.flags & CONFIG_FLAG_STATICIP )
+		{
+			UARTprintf("Static IP\n");
+		}
+		else
+		{
+			UARTprintf("Dynamic IP\n");
+		}
 
-    temp = Ethernet_GetIp();
-    UARTprintf("IP : %d.%d.%d.%d \n", tempChar[0], tempChar[1], tempChar[2], tempChar[3]);
+		Ethernet_GetMacAddress(&macAddr[0]);
+		UARTprintf("MAC : %02X-%02X-%02X-%02X-%02X-%02X \n", macAddr[0],macAddr[1],macAddr[2],macAddr[3],macAddr[4],macAddr[5] );
 
-    temp = Ethernet_GetGatewayIp();
-    UARTprintf("Gateway : %d.%d.%d.%d \n", tempChar[0], tempChar[1], tempChar[2], tempChar[3]);
+		temp = Ethernet_GetIp();
+		UARTprintf("IP : %d.%d.%d.%d \n", tempChar[0], tempChar[1], tempChar[2], tempChar[3]);
 
-    temp = Ethernet_GetNetmask();
-    UARTprintf("Netmask : %d.%d.%d.%d \n", tempChar[0], tempChar[1], tempChar[2], tempChar[3]);
+		temp = Ethernet_GetGatewayIp();
+		UARTprintf("Gateway : %d.%d.%d.%d \n", tempChar[0], tempChar[1], tempChar[2], tempChar[3]);
+
+		temp = Ethernet_GetNetmask();
+		UARTprintf("Netmask : %d.%d.%d.%d \n", tempChar[0], tempChar[1], tempChar[2], tempChar[3]);
+    }
+    else
+    {
+    	UARTprintf("Error\n");
+    }
+
+
 
     return (0);
 }
@@ -330,15 +438,14 @@ tTime currentTime;
 			if ((argc > 2) && ( 's' == argv[2][0] ))
 			{
 				// set - update the time offset on the clock, value in signed minutes
-				if ("-" == argv[3][0])
+				if ('-' == argv[3][0])
 				{
-					g_sParameters.timeOffset = ustrtoul(argv[3], 1, 10);
-					// Make it negative
-					g_sParameters.timeOffset *= -1;
+					// The name lies, the TI ustrtoul will detect a negative value and give the right result
+					g_sParameters.timeOffset = ustrtoul((const char *)&argv[3][0], 0, 10);
 				}
 				else
 				{
-					g_sParameters.timeOffset = ustrtoul(argv[3], 0, 10);
+					g_sParameters.timeOffset = ustrtoul((const char *)&argv[3], 0, 10);
 				}
 			}
 
@@ -772,5 +879,7 @@ ui8 port = 0;
 int CMD_SelfTest (int argc, char **argv)
 {
 	SelfTest();
+
+	return (0);
 }
 

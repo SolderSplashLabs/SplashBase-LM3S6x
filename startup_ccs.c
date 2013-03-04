@@ -59,6 +59,7 @@ extern void SysTickIntHandler(void);
 //extern void SerialUART0IntHandler(void);
 //extern void SerialUART1IntHandler(void);
 extern void UARTStdioIntHandler(void);
+extern void SSI_IntHandler( void );
 
 //*****************************************************************************
 //
@@ -94,7 +95,7 @@ void (* const g_pfnVectors[])(void) =
     IntDefaultHandler,                      // GPIO Port E
     IntDefaultHandler,                  	// UART0 Rx and Tx
     UARTStdioIntHandler,                  	// UART1 Rx and Tx
-    IntDefaultHandler,                      // SSI0 Rx and Tx
+    SSI_IntHandler,                      	// SSI0 Rx and Tx
     IntDefaultHandler,                      // I2C0 Master and Slave
     IntDefaultHandler,                      // PWM Fault
     IntDefaultHandler,                      // PWM Generator 0

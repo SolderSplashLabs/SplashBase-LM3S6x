@@ -10,7 +10,11 @@
 RFC5905 - Details the NTPv4 Protocol
 
 */
+
+#include "SplashBaseHeaders.h"
 #include <string.h>
+
+/*
 #include "inc/hw_ints.h"
 #include "inc/hw_memmap.h"
 #include "inc/hw_types.h"
@@ -24,6 +28,7 @@ RFC5905 - Details the NTPv4 Protocol
 
 #include "time.h"
 #include "sntpClient.h"
+*/
 
 struct udp_pcb *SntpPort;
 struct ip_addr SntpServerIpAddr;

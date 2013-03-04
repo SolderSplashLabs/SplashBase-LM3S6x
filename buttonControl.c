@@ -11,6 +11,9 @@
 
 */
 
+#include "SplashBaseHeaders.h"
+
+/*
 #include "inc/hw_ints.h"
 #include "inc/hw_memmap.h"
 #include "inc/hw_nvic.h"
@@ -22,6 +25,7 @@
 #include "datatypes.h"
 
 #include "buttonControl.h"
+*/
 
 ui32 Button1PressedCounter = 0;
 ui32 Button2PressedCounter = 0;

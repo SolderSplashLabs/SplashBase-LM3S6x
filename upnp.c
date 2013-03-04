@@ -22,7 +22,7 @@
 //
 //*****************************************************************************
 
-#include "globals.h"
+#include "SplashBaseHeaders.h"
 
 #ifdef UPNP_ENABLED
 
@@ -32,6 +32,9 @@
 #include "driverlib/ethernet.h"
 #include "lwiplib.h"
 #include "utils/ustdlib.h"
+
+#include "datatypes.h"
+
 #include "config.h"
 #include "upnp.h"
 

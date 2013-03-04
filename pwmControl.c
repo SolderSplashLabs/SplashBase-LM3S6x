@@ -9,6 +9,10 @@
 
 */
 
+#define PWMCONTROL
+#include "SplashBaseHeaders.h"
+
+/*
 #include "inc/hw_ints.h"
 #include "inc/hw_memmap.h"
 //#include "inc/hw_nvic.h"
@@ -23,6 +27,7 @@
 
 #define PWMCONTROL
 #include "pwmControl.h"
+*/
 
 // Each 32 timer can be split into 2
 // each 16bit chunk is assigned to a CCP output
@@ -98,10 +103,10 @@ void pwmOff( void )
 	
 	// Force lines low
 	GPIOPinTypeGPIOOutput(GPIO_PORTB_BASE, GPIO_PIN_0 | GPIO_PIN_1);
-	GPIO_PORTB_DATA_R &= ~(BIT0 | BIT1);
+	GPIOPinWrite(GPIO_PORTB_BASE, (BIT0 | BIT1), 0);
 	
 	GPIOPinTypeGPIOOutput(GPIO_PORTA_BASE, GPIO_PIN_6);
-	GPIO_PORTA_DATA_R &= ~BIT6;
+	GPIOPinWrite(GPIO_PORTA_BASE, BIT6, 0);
 	
 	PwmStatus = 0;
 }

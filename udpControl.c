@@ -8,8 +8,13 @@
  (C)SolderSplash Labs 2012 - www.soldersplash.co.uk - C. Matthews - R. Steel
 
 */
+
+#define UDPCONTROL
+#include "SplashBaseHeaders.h"
+
 #include <string.h>
 
+/*
 #include "inc/hw_ints.h"
 #include "inc/hw_memmap.h"
 #include "inc/hw_types.h"	
@@ -29,9 +34,11 @@
 #include "logicController.h"
 #include "solderBridge\solderBridgeSpi.h"
 #include "userGpioControl.h"
+#include "ethernetControl.h"
 
 #define UDPCONTROL
 #include "udpControl.h"
+*/
 
 
 //*****************************************************************************
@@ -143,7 +150,7 @@ ui8 replyBufPos = 0;
 	}
 
 	// Loop until you hit the max string length or find a 0 in the string
-	for(strLenCnt = 0; (strLenCnt < MAX_RELAYNAME_LEN) && *relayName; strLenCnt++)
+	for(strLenCnt = 0; (strLenCnt < SPLASHBASE_RELAYNAME_LEN) && *relayName; strLenCnt++)
 	{
 		SscReplyBuffer[strLenCnt + replyBufPos] = *relayName++;
 	}
@@ -151,7 +158,7 @@ ui8 replyBufPos = 0;
 	//
 	// Zero-fill the remainder of the space in the response data (if any).
 	//
-	for(; strLenCnt < MAX_RELAYNAME_LEN; strLenCnt++)
+	for(; strLenCnt < SPLASHBASE_RELAYNAME_LEN; strLenCnt++)
 	{
 		SscReplyBuffer[strLenCnt + replyBufPos] = 0;
 	}
@@ -401,7 +408,7 @@ ui32 ulIPAddress = 0;
 		pucData[SSC_POS_IP + 3] = 0x000000FF & (ulIPAddress);
 
 		// MAC Addr
-		Ethernet_GetMacAddress(&pucData[SSC_POS_MAC]);
+		Ethernet_GetMacAddress((ui8 *)&pucData[SSC_POS_MAC]);
 
 		// SW Rev - TODO : Move to Defines & centralise
 		pucData[SSC_POS_SWREV] = SW_REV_MAJOR;
@@ -422,7 +429,7 @@ ui32 ulIPAddress = 0;
 			pos += 4;
 		}
 
-		if ( 0xFFFFFFFF == addr )
+		if ( 0xFFFFFFFF == addr->addr )
 		{
 			// Broadcast
 			addr = IP_ADDR_BROADCAST;
@@ -452,6 +459,7 @@ volatile ui8 *pucData;
 ui32 *ptLong;
 ui32 *ptLong2;
 ui16 tempInt;
+ui16 tempInt2;
 ui32 tempLong;
 ui32 tempLong2;
 ui16 tempDuty0;
@@ -459,6 +467,7 @@ ui16 tempDuty1;
 ui16 tempDuty2;
 volatile double scaledFreqFloat;
 ui8 replyWithStatus = 0;
+struct pbuf *nextP;
 
 
 	//
@@ -545,14 +554,15 @@ ui8 replyWithStatus = 0;
 			// String length
 			tempInt = pucData[1];
 
-			if (tempInt > MOD_NAME_LEN) tempInt = MOD_NAME_LEN;
+			if (tempInt > SPLASHBASE_NAME_LEN-1) tempInt = SPLASHBASE_NAME_LEN-1;
 
-			strncpy((char *)g_sParameters.ucModName, (char *)pucData[2], tempInt);
+			strncpy((char *)g_sParameters.splashBaseName, (char *)&pucData[2], tempInt);
+			g_sParameters.splashBaseName[tempInt] = 0;
 
 			//LocatorAppTitleSet((char *)g_sParameters.ucModName);
 
 			// And the SolderSplash UDP Protocol
-			SSC_SetUnitName((ui8 *)g_sParameters.ucModName);
+			SSC_SetUnitName((ui8 *)g_sParameters.splashBaseName);
 
 			ConfigSave();
 		break;
@@ -561,15 +571,15 @@ ui8 replyWithStatus = 0;
 			// String length
 			tempInt = pucData[2];
 
-			if (tempInt > MAX_RELAYNAME_LEN) tempInt = MAX_RELAYNAME_LEN;
+			if (tempInt > SPLASHBASE_RELAYNAME_LEN) tempInt = SPLASHBASE_RELAYNAME_LEN;
 
 			switch (pucData[1])
 			{
 				case 0 :
 					memcpy(g_sParameters.relayOneName, (char *)&pucData[3], tempInt);
-					if (tempInt < MAX_RELAYNAME_LEN) g_sParameters.relayOneName[tempInt] = 0;
+					if (tempInt < SPLASHBASE_RELAYNAME_LEN) g_sParameters.relayOneName[tempInt] = 0;
 
-					strncpy((char *)g_sWorkingDefaultParameters.relayOneName, (char *)g_sParameters.relayOneName, MAX_RELAYNAME_LEN);
+					strncpy((char *)g_sWorkingDefaultParameters.relayOneName, (char *)g_sParameters.relayOneName, SPLASHBASE_RELAYNAME_LEN);
 
 					SSC_SetRelayName((ui8 *)g_sParameters.relayOneName, 0 );
 
@@ -577,27 +587,27 @@ ui8 replyWithStatus = 0;
 
 				case 1 :
 					memcpy(g_sParameters.relayTwoName, (char *)&pucData[3], tempInt);
-					if (tempInt < MAX_RELAYNAME_LEN) g_sParameters.relayTwoName[tempInt] = 0;
+					if (tempInt < SPLASHBASE_RELAYNAME_LEN) g_sParameters.relayTwoName[tempInt] = 0;
 
-					strncpy((char *)g_sWorkingDefaultParameters.relayTwoName, (char *)g_sParameters.relayTwoName, MAX_RELAYNAME_LEN);
+					strncpy((char *)g_sWorkingDefaultParameters.relayTwoName, (char *)g_sParameters.relayTwoName, SPLASHBASE_RELAYNAME_LEN);
 
 					SSC_SetRelayName((ui8 *)g_sParameters.relayTwoName, 1 );
 				break;
 
 				case 2 :
 					memcpy(g_sParameters.relayThreeName, (char *)&pucData[3], tempInt);
-					if (tempInt < MAX_RELAYNAME_LEN) g_sParameters.relayThreeName[tempInt] = 0;
+					if (tempInt < SPLASHBASE_RELAYNAME_LEN) g_sParameters.relayThreeName[tempInt] = 0;
 
-					strncpy((char *)g_sWorkingDefaultParameters.relayThreeName, (char *)g_sParameters.relayThreeName, MAX_RELAYNAME_LEN);
+					strncpy((char *)g_sWorkingDefaultParameters.relayThreeName, (char *)g_sParameters.relayThreeName, SPLASHBASE_RELAYNAME_LEN);
 
 					SSC_SetRelayName((ui8 *)g_sParameters.relayThreeName, 2 );
 				break;
 
 				case 3 :
 					memcpy(g_sParameters.relayFourName, (char *)&pucData[3], tempInt);
-					if (tempInt < MAX_RELAYNAME_LEN) g_sParameters.relayFourName[tempInt] = 0;
+					if (tempInt < SPLASHBASE_RELAYNAME_LEN) g_sParameters.relayFourName[tempInt] = 0;
 
-					strncpy((char *)g_sWorkingDefaultParameters.relayFourName, (char *)g_sParameters.relayFourName, MAX_RELAYNAME_LEN);
+					strncpy((char *)g_sWorkingDefaultParameters.relayFourName, (char *)g_sParameters.relayFourName, SPLASHBASE_RELAYNAME_LEN);
 
 					SSC_SetRelayName((ui8 *)g_sParameters.relayFourName, 3 );
 				break;
@@ -633,14 +643,14 @@ ui8 replyWithStatus = 0;
 		break;
 		
 		case SSC_MANUAL_GPIO_DIR :
-			ptLong = &pucData[2];
-			ptLong2 = &pucData[6];
+			ptLong = (ui32 *)&pucData[2];
+			ptLong2 = (ui32 *)&pucData[6];
 			UserGpioDirection( pucData[1], *ptLong, *ptLong2 );
 		break;
 
 		case SSC_MANUAL_GPIO_DATA :
-			ptLong = &pucData[2];
-			ptLong2 = &pucData[6];
+			ptLong = (ui32 *)&pucData[2];
+			ptLong2 = (ui32 *)&pucData[6];
 			UserGpioSetOutputs( pucData[1], *ptLong, *ptLong2 );
 		break;
 
@@ -650,6 +660,33 @@ ui8 replyWithStatus = 0;
 
 		case SSC_SB_SERVOPOS :
 			SB_ServoSet(0xFF, (ui8 *)&pucData[4], pucData[2], pucData[3]);
+		break;
+
+		case SSC_SPLASHPIXEL_FBSET :
+
+			#ifdef SPLASHPIXEL_ENABLED
+			// Long UDP messages arrive in chunks from lwip
+			tempInt = p->tot_len;
+			tempInt2 = 0;
+
+			SP_CopyFrameBuffer(tempInt2, &pucData[4], p->len-4);
+
+			tempInt2 += p->len;
+
+			nextP = p;
+
+			while (( nextP->tot_len > nextP->len ) || ( tempInt2 < tempInt))
+			{
+				// move to next buffer
+				nextP = nextP->next;
+				pucData = nextP->payload;
+				SP_CopyFrameBuffer((tempInt2-4), &pucData[0], nextP->len);
+
+				// Update total bytes processed
+				tempInt2 += nextP->len;
+			}
+			#endif
+
 		break;
 
 		default :

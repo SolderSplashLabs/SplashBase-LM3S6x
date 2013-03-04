@@ -21,6 +21,10 @@
  *
  */
 
+#define _25AA02E48_
+#include "SplashBaseHeaders.h"
+
+/*
 #include "datatypes.h"				// SolderSplash Labs - Custom Data Types
 #include "inc/hw_memmap.h"			// Stellaris memory map macros
 #include "inc/hw_ssi.h"				// SSI Macros
@@ -31,6 +35,7 @@
 
 #define _25AA02E48_
 #include "25AA02E48.h"
+*/
 
 //*****************************************************************************
 //

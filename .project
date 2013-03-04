@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>SplashBase</name>
+	<name>SplashBase-Dev</name>
 	<comment></comment>
 	<projects>
 	</projects>
@@ -34,11 +34,6 @@
 			<name>utils/flash_pb.c</name>
 			<type>1</type>
 			<locationURI>STELLARISWARE_DIR/utils/flash_pb.c</locationURI>
-		</link>
-		<link>
-			<name>utils/httpd.c</name>
-			<type>1</type>
-			<locationURI>STELLARISWARE_DIR/third_party/lwip-1.3.2/apps/httpserver_raw/httpd.c</locationURI>
 		</link>
 		<link>
 			<name>utils/ringbuf.c</name>

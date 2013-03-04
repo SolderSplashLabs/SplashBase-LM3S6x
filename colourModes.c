@@ -9,6 +9,10 @@
 
 */
 
+#define COLOUR_MODES
+#include "SplashBaseHeaders.h"
+
+/*
 #include "inc/hw_ints.h"
 #include "inc/hw_memmap.h"
 #include "inc/hw_nvic.h"
@@ -25,6 +29,9 @@
 
 #define COLOUR_MODES
 #include "colourModes.h"
+*/
+
+
 
 ui8 ColourCurrentMode = COLOUR_MODE_BOUNCE;
 

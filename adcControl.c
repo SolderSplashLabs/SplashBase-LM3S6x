@@ -11,6 +11,9 @@
 
 */
 
+#include "SplashBaseHeaders.h"
+
+/*
 #include "inc/hw_ints.h"
 #include "inc/hw_nvic.h"
 #include "inc/hw_memmap.h"
@@ -23,6 +26,7 @@
 #include "datatypes.h"
 
 #include "adcControl.h"
+*/
 
 #define ADC_MV_PER_CNT			2.932551
 #define ADC_MV_TEMP_ZERO		500

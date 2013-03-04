@@ -9,8 +9,6 @@
 
  Redistributions of source code must retain the above copyright notice
 
- Globals should generally be avoided and data exchanged between software modules.
- But for key defines it makes sense
 */
 
 // Number of times a second you would like the SysTick interrupt to fire
@@ -20,7 +18,7 @@
 #define SYSTICKMS               (1000 / SYSTICKHZ)
 
 #define SW_REV_MAJOR 			0
-#define SW_REV_MINOR			6
+#define SW_REV_MINOR			7
 
 // Revision of base board the software is running on
 #define SPLASHBASE_BOARD_REV	2
@@ -30,9 +28,20 @@
 //#define HTTP_ENABLED
 
 // Define to enable UPNP
-#define UPNP_ENABLED
+//#define UPNP_ENABLED
 // NOTE : You need to define LWIP_UPNP in lwipopts as well
 
 #define SERIAL_ENABLED
 #define SERIAL_UART			1
+
+#define SOLDERBRIDGES_ENABLED
+
+// SplashPixel and Bridges are currently incompatible
+#ifndef SOLDERBRIDGES_ENABLED
+//#define SPLASHPIXEL_ENABLED
+#endif
+
+#define LOGIC_ENABLED
+
+#define SELF_TEST
 

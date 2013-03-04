@@ -1,4 +1,5 @@
 
+// TODO : Moved to config .CosmPrivKey
 #define COSM_PRIV_KEY 	"2mDYswqyT1UA5CCV9KrkZJhpMA6SAKw0VXNxYzNpa3pQQT0g"
 #define COSM_HOST		"api.cosm.com"
 #define COMS_FEED_ID	"83864"

@@ -13,6 +13,10 @@
 
 // Remember to include add the root of your Stellaris directory to the project include directory
 // Project > Build > Compiler > Include Options > Include Path
+
+#include "SplashBaseHeaders.h"
+
+/*
 #include "inc/hw_ints.h"
 #include "inc/hw_memmap.h"
 #include "inc/hw_nvic.h"
@@ -48,6 +52,7 @@
 #include "solderBridge/externalGpio.h"
 #include "time.h"
 #include "serialControl.h"
+*/
 
 // *****************************************************************************
 // SysTickIntHandler
@@ -58,11 +63,19 @@ void SysTickIntHandler(void)
 	// Keep track of time!
 	Time_Task();
 
-	SolderBridge_Task();
+	#ifdef SOLDERBRIDGES_ENABLED
+		SolderBridge_Task();
 
-	ExtGpio_Task();
+		ExtGpio_Task();
+	#endif
 
-	Serial_Task();
+	#ifdef SERIAL_ENABLED
+		Serial_Task();
+	#endif
+
+	#ifdef SPLASHPIXEL_ENABLED
+		SP_Task();
+	#endif
 
 	ColourModeTick();
 
@@ -72,8 +85,11 @@ void SysTickIntHandler(void)
 	// Measure any analogue inputs
 	AdcTask();
 
-	// The Logic task handles all of the if 'this' then 'that' functionality
-	LogicTask();
+	#ifdef LOGIC_ENABLED
+		// The Logic task handles all of the if 'this' then 'that' functionality
+		LogicTask();
+	#endif
+
 }
 
 // *****************************************************************************
@@ -166,43 +182,30 @@ void InitialiseHW ( void )
 	// period.
 
 	#ifdef SERIAL_ENABLED
-		//SerialInit();
-
-		//
-		// Configure the Port 0 pins appropriately.
-		//
-		GPIOPinTypeUART(PIN_U0RX_PORT, PIN_U0RX_PIN);
-		GPIOPinTypeUART(PIN_U0TX_PORT, PIN_U0TX_PIN);
-
-		//
-		// Configure the Port 1 pins appropriately.
-		//
-
-		GPIOPinTypeUART(PIN_U1RX_PORT, PIN_U1RX_PIN);
-		GPIOPinTypeUART(PIN_U1TX_PORT, PIN_U1TX_PIN);
-
-		UARTStdioInit(SERIAL_UART);
-		UARTprintf("Booting\n");
-
+		Serial_Init();
 	#endif
 
 	#ifdef UPNP_ENABLED
 		UPnPInit();
 	#endif
 
-	#ifdef HTTP_ENABLED
-		httpd_init();
-	#endif
-
 	Ethernet_Init();
 
-	LogicStartStop(true);
+	#ifdef LOGIC_ENABLED
+		LogicStartStop(true);
+	#endif
 
-	SB_Init();
-	ExtGpio_Init();
+	#ifdef SOLDERBRIDGES_ENABLED
+		SB_Init();
+		ExtGpio_Init();
 
-	SolderBridge_StartScan();
-	ExtGpio_Scan();
+		SolderBridge_StartScan();
+		ExtGpio_Scan();
+	#endif
+
+	#ifdef SPLASHPIXEL_ENABLED
+		SP_Init();
+	#endif
 
 	// Most, if not all M3's have a SysTick which you can use for scheduling your code
 	SysTickPeriodSet(SysCtlClockGet() / SYSTICKHZ);
@@ -225,7 +228,7 @@ int main(void)
 	// Initalise the SolderSplash UDP Coms
 	SSC_Init();
 	SSC_MACAddrSet((ui8 *)tmpMacAddr);
-	SSC_SetUnitName((ui8 *)g_sParameters.ucModName);
+	SSC_SetUnitName((ui8 *)g_sParameters.splashBaseName);
 
 	SSC_SetRelayName((ui8 *)g_sParameters.relayOneName, 0);
 	SSC_SetRelayName((ui8 *)g_sParameters.relayTwoName, 1);

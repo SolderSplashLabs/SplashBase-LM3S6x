@@ -11,6 +11,10 @@
 
 */
 
+#define _LOGIC_H_
+#include "SplashBaseHeaders.h"
+
+/*
 #include "inc/hw_ints.h"
 #include "inc/hw_memmap.h"
 #include "inc/hw_nvic.h"
@@ -36,6 +40,7 @@
 
 #define _LOGIC_H_
 #include "logicController.h"
+*/
 
 
 // TODO : tidy up
@@ -600,8 +605,6 @@ void LogicStartStop ( bool start )
 	networkConnected = Ethernet_Connected();
 
 	LogicRunning = start;
-
-	LogicActions.actionType[0] = 0;
 }
 
 //*****************************************************************************

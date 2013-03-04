@@ -22,5 +22,8 @@ extern ui32 GPIO_REGISTERS[];
 bool UserGpioDirInput ( ui8 portNo, ui32 pins );
 bool UserGpioDirOutput ( ui8 portNo, ui32 pins );
 bool UserGpioSetOutputs ( ui8 portNo, ui32 mask, ui32 newVal);
+ui32 UserGpioGet ( ui8 portNo, ui32 *buffer );
+void ExtGpio_GetPort ( ui8 port, ui16 *buffer );
+bool UserGpioDirection ( ui8 portNo, ui32 mask, ui32 pins );
 
 #endif

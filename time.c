@@ -9,6 +9,9 @@
 
 */
 
+#include "SplashBaseHeaders.h"
+
+/*
 #include "inc/hw_ints.h"
 #include "inc/hw_memmap.h"
 #include "inc/hw_nvic.h"
@@ -26,8 +29,7 @@
 #include "globals.h"
 
 #include "time.h"
-
-// TODO : need to store an hour offset for different regions, if the NTP response is not regionalised
+*/
 
 ui32 Uptime = 0;
 ui32 UnixTime = 0;

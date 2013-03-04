@@ -11,6 +11,9 @@
 
 */
 
+#include "SplashBaseHeaders.h"
+
+/*
 #include "inc/hw_ints.h"
 #include "inc/hw_memmap.h"
 #include "inc/hw_types.h"
@@ -21,10 +24,14 @@
 #include "inc/lm3s6432.h"
 #include "datatypes.h"
 
-#include "globals.h"
-#include "datatypes.h"
+#include "utils/uartstdio.h"
 
-#define SELF_TEST
+#include "adcControl.h"
+#include "ethernetControl.h"
+
+#include "globals.h"
+*/
+
 #ifdef SELF_TEST
 
 const typedef enum TEST_FAIL_TYPE
@@ -44,7 +51,8 @@ const typedef enum TEST_FAIL_TYPE
 	TEST_FAIL_IO2_6,
 	TEST_FAIL_IO2_7,
 	TEST_FAIL_IO2_8,
-	TEST_FAIL_IO2_9
+	TEST_FAIL_IO2_9,
+	TEST_FAIL_EEPROM
 } TEST_FAIL_TYPE;
 
 //*****************************************************************************
@@ -110,13 +118,12 @@ ui8 i = 0;
 //*****************************************************************************
 void SelfTest ( void )
 {
-ui8 i=0;
 ui16 adcValues[3];
 ui8 macAddr[8];
 
 	// Is Mac address Default?
-	Ethernet_GetMacAddress(&macAddr);
-	if ( macAddr[1] == 0xAA ) SelfTestFail("Eeprom Failure");
+	Ethernet_GetMacAddress(&macAddr[0]);
+	if ( macAddr[1] == 0xAA ) SelfTestFail(TEST_FAIL_EEPROM);
 
 	// Test Push Button
 

@@ -17,3 +17,6 @@ void AdcInit ( void );
 ui32 AdcGetTemperature ( void );
 ui32 AdcGetResult ( ui8 channel );
 void AdcAllAdcResults ( ui16 *resultsBuff, ui8 buffSize );
+ui32 AdcGetTemperature ( void );
+ui32 AdcGetInternalTemp ( void );
+

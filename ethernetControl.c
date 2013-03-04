@@ -10,7 +10,9 @@
  Redistributions of source code must retain the above copyright notice
 
 */
+#include "SplashBaseHeaders.h"
 
+/*
 #include "inc/hw_ints.h"
 #include "inc/hw_memmap.h"
 #include "inc/hw_nvic.h"
@@ -33,6 +35,7 @@
 #include "25AA02E48.h"
 #include "sntpClient.h"
 #include "ethernetControl.h"
+*/
 
 bool EthernetConnected = false;
 bool DhcpFail = false;
@@ -192,7 +195,7 @@ void Ethernet_Init ( void )
 	// Init the lwip stack
 
 	lwIPInit((const unsigned char *)macAddr, g_sParameters.ulStaticIP, g_sParameters.ulSubnetMask,
-	             g_sParameters.ulGatewayIP, ((g_sParameters.ucFlags &
+	             g_sParameters.ulGatewayIP, ((g_sParameters.flags &
 	             CONFIG_FLAG_STATICIP) ? IPADDR_USE_STATIC : IPADDR_USE_DHCP));
 
 

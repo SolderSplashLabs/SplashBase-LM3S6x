@@ -164,5 +164,6 @@ void LogicCapturePortData ( void );
 bool LogicProcessCondition ( ui8 conditionNo, bool secondaryEvent );
 void LogicInsertNewCondition (ui8 position, ui8 *newCondition );
 void LogicStartStop ( bool start );
-
-
+void LogicSaveConditions ( void );
+const char * LogicGetActionStr ( ui8 position );
+const char * LogicGetEventStr ( ui8 position, bool primary );

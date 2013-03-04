@@ -11,7 +11,10 @@
 
 */
 
+#define RELAYCONTROL
+#include "SplashBaseHeaders.h"
 
+/*
 #include "inc/hw_ints.h"
 #include "inc/hw_memmap.h"
 //#include "inc/hw_nvic.h"
@@ -26,6 +29,7 @@
 
 #define RELAYCONTROL
 #include "relayControl.h"
+*/
 
 void relayInit( void )
 {
@@ -34,12 +38,14 @@ void relayInit( void )
 	// Allow relay control
 	RelayStatus = 1;
 	
+	/*
 	// Enable Portd    
     SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOD);
 
     // Do a dummy read to insert a few cycles after enabling the peripheral.
     dummy = SYSCTL_RCGC2_R;
     dummy = SYSCTL_RCGC2_R;
+    */
 
     GPIOPinWrite(GPIO_PORTD_BASE, RELAY_OUT_BITS, 0);
 

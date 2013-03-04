@@ -10,7 +10,10 @@
  This function filters user control of GPIO, stopping them from interfering with IO
  Control by the application. It also diverts IO control to external add ons
 */
+#define _USER_GPIO_
+#include "SplashBaseHeaders.h"
 
+/*
 #include "inc/hw_ints.h"
 #include "inc/hw_memmap.h"
 #include "inc/hw_nvic.h"
@@ -24,6 +27,7 @@
 
 #define _USER_GPIO_
 #include "userGpioControl.h"
+*/
 
 // Mask of Outputs controlled by the application that the user should not be allowed to control
 static ui32 UserGpioMask[ GPIO_PORT_TOTAL ];
@@ -157,7 +161,7 @@ bool result = false;
 		{
 			// Get External Port
 			// This change effects external I/O
-			ExtGpio_GetPort( (portNo-GPIO_PORT_MAX_MCU), buffer );
+			ExtGpio_GetPort( (portNo-GPIO_PORT_MAX_MCU), (ui16 *)buffer );
 			result = true;
 		}
 		else

@@ -34,6 +34,7 @@ enum SSC_COMMANDS
 	SSC_SET_UNIT_NAME = 0x20,
 	SSC_SET_RELAY_NAME,					// Set the supplied relay no's name
 	SSC_OUTPUTS_ON_OFF = 0x30,			// Control all outputs, turn if on/off
+	SSC_SPLASHPIXEL_FBSET = 0x45,		// Set the SplashPixel Framebuffer
 	SSC_MANUAL_GPIO_DIR = 0x50, 		// Set gpio direction, 1 output
 	SSC_MANUAL_GPIO_DATA = 0x51, 		// set gpio outputs high or low
 	SSC_LOGIC_COMMAND = 0x60,
@@ -88,10 +89,11 @@ static void SSC_ProcessCommand(struct udp_pcb *pcb, struct pbuf *p, struct ip_ad
 static void SSC_SendReply(struct pbuf *p, struct ip_addr *addr);
 static void SSC_Recieve(void *arg, struct udp_pcb *pcb, struct pbuf *p, struct ip_addr *addr, ui16 port);
 
+
 #endif /*UDPCONTROL_H_*/
 
 void SSC_Init(void);
 void SSC_MACAddrSet(ui8 *pucMACArray);
 void SSC_SetRelayName(const ui8 *relayName, ui8 relayNo);
 void SSC_SetUnitName(const ui8 *pcAppTitle);
-
+void SSC_SendPortInfo ( struct ip_addr *addr, ui16 reason );

@@ -1,286 +1,84 @@
-//*****************************************************************************
-//
-// config.h - Configuration of the serial to Ethernet converter.
-//
-// Copyright (c) 2008-2012 Texas Instruments Incorporated.  All rights reserved.
-// Software License Agreement
-// 
-// Texas Instruments (TI) is supplying this software for use solely and
-// exclusively on TI's microcontroller products. The software is owned by
-// TI and/or its suppliers, and is protected under applicable copyright
-// laws. You may not combine this software with "viral" open-source
-// software in order to form a larger program.
-// 
-// THIS SOFTWARE IS PROVIDED "AS IS" AND WITH ALL FAULTS.
-// NO WARRANTIES, WHETHER EXPRESS, IMPLIED OR STATUTORY, INCLUDING, BUT
-// NOT LIMITED TO, IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-// A PARTICULAR PURPOSE APPLY TO THIS SOFTWARE. TI SHALL NOT, UNDER ANY
-// CIRCUMSTANCES, BE LIABLE FOR SPECIAL, INCIDENTAL, OR CONSEQUENTIAL
-// DAMAGES, FOR ANY REASON WHATSOEVER.
-// 
-// This is part of revision 8555 of the RDK-S2E Firmware Package.
-//
-//*****************************************************************************
+/*
+  ____        _     _           ____        _           _		 _          _
+ / ___|  ___ | | __| | ___ _ __/ ___| _ __ | | __ _ ___| |__	| |    __ _| |__  ___
+ \___ \ / _ \| |/ _` |/ _ \ '__\___ \| '_ \| |/ _` / __| '_ \	| |   / _` | '_ \/ __|
+  ___) | (_) | | (_| |  __/ |   ___) | |_) | | (_| \__ \ | | |	| |__| (_| | |_) \__ \
+ |____/ \___/|_|\__,_|\___|_|  |____/| .__/|_|\__,_|___/_| |_|	|_____\__,_|_.__/|___/
+                                     |_|
+ (C)SolderSplash Labs 2013-03-03 - www.soldersplash.co.uk - C. Matthews - R. Steel
 
-#ifndef __CONFIG_H__
-#define __CONFIG_H__
+ This work is licensed under a Creative Commons Attribution-ShareAlike 3.0 Unported License.
 
-//*****************************************************************************
-//
-//! \addtogroup config_api
-//! @{
-//
-//*****************************************************************************
+*/
 
-//*****************************************************************************
-//
-// During debug, DEBUG_UART may be defined with values 0 or 1 to select which
-// of the two UARTs are used to output debug messages.  Debug messages will be
-// interleaved with any telnet data also being carried via that UART so great
-// care must be exercised when enabling this debug option.  Typically, you
-// should use only a single telnet connection when debugging with DEBUG_UART
-// set to use the inactive UART.
-//
-//*****************************************************************************
-#ifdef DEBUG_UART
-#define DEBUG_MSG UARTprintf
-#else
-#define DEBUG_MSG while(0) ((int (*)(char *, ...))0)
-#endif
+// Max String Lengths
+#define SPLASHBASE_NAME_LEN				24
+#define SPLASHBASE_RELAYNAME_LEN		12
+#define COSM_PRIV_KEY_LEN				64
+#define SNTP_SERVER_LEN					32
 
-//*****************************************************************************
-//
-//! The number of serial to Ethernet ports supported by this module.
-//
-//*****************************************************************************
-#define MAX_S2E_PORTS           2
-
-//*****************************************************************************
-//
-//! This structure defines the port parameters used to configure the UART and
-//! telnet session associated with a single instance of a port on the S2E
-//! module.
-//
-//*****************************************************************************
+// Structure of configuration saved to flash
 typedef struct
 {
-    //
-    //! The baud rate to be used for the UART, specified in bits-per-second
-    //! (bps).
-    //
-    unsigned long ulBaudRate;
+	// TI Flash library wear levels config writes to the range of flash used.
+	// the config block with the highest sequence num is loaded is loaded/used
+    ui8 sequenceNum;
 
-    //
-    //! The data size to be use for the serial port, specified in bits.  Valid
-    //! values are 5, 6, 7, and 8.
-    //
-    unsigned char ucDataSize;
+    // TI Flash writing library stores and checks this checksum
+    ui8 crcChecksum;
 
-    //
-    //! The parity to be use for the serial port, specified as an enumeration.
-    //! Valid values are 1 for no parity, 2 for odd parity, 3 for even parity,
-    //! 4 for mark parity, and 5 for space parity.
-    //
-    unsigned char ucParity;
+    // Version of config
+    ui8 version;
 
-    //
-    //! The number of stop bits to be use for the serial port, specified as
-    //! a number.  Valid values are 1 and 2.
-    //
-    unsigned char ucStopBits;
+    // Misc Flags
+    ui8 flags;
 
-    //
-    //! The flow control to be use for the serial port, specified as an
-    //! enumeration.  Valid values are 1 for no flow control and 3 for HW
-    //! (RTS/CTS) flow control.
-    //
-    unsigned char ucFlowControl;
+    // SplashBase Name
+    ui8 splashBaseName[SPLASHBASE_NAME_LEN];
 
-    //
-    //! The timeout for the TCP connection used for the telnet session,
-    //! specified in seconds.  A value of 0 indicates no timeout is to
-    //! be used.
-    //
-    unsigned long ulTelnetTimeout;
+    // The static IP address to use if DHCP is not in use
+    ui32 ulStaticIP;
 
-    //
-    //! The local TCP port number to be listened on when in server mode or
-    //! from which the outgoing connection will be initiated in client mode.
-    //
-    unsigned short usTelnetLocalPort;
+    // The default gateway IP address to use if DHCP is not in use.
+    ui32 ulGatewayIP;
 
-    //
-    //! The TCP port number to which a connection will be established when in
-    //! telnet client mode.
-    //
-    unsigned short usTelnetRemotePort;
-
-    //
-    //! The IP address which will be connected to when in telnet client mode.
-    //
-    unsigned long ulTelnetIPAddr;
-
-    //
-    //! Miscellaneous flags associated with this connection.
-    //
-    unsigned char ucFlags;
-
-    //! Padding to ensure consistent parameter block alignment, and
-    //! to allow for future expansion of port parameters.
-    //
-    unsigned char ucReserved0[19];
-}
-tPortParameters;
-
-//*****************************************************************************
-//
-//! Bit 0 of field ucFlags in tPortParameters is used to indicate whether to
-//! operate as a telnet server or a telnet client.
-//
-//*****************************************************************************
-#define PORT_FLAG_TELNET_MODE   0x01
-
-//*****************************************************************************
-//
-// Helpful labels used to determine if we are operating as a telnet client or
-// server (based on the state of the PORT_FLAG_TELNET_MODE bit in the ucFlags
-// field of tPortParameters).
-//
-//*****************************************************************************
-#define PORT_TELNET_SERVER      0x00
-#define PORT_TELNET_CLIENT      PORT_FLAG_TELNET_MODE
-
-//*****************************************************************************
-//
-//! Bit 1 of field ucFlags in tPortParameters is used to indicate whether to
-//! bypass the telnet protocol (raw data mode).
-//
-//*****************************************************************************
-#define PORT_FLAG_PROTOCOL      0x02
-
-//*****************************************************************************
-//
-// Helpful labels used to determine if we are operating in raw data mode, or
-// in telnet protocol mode.
-//
-//*****************************************************************************
-#define PORT_PROTOCOL_TELNET    0x00
-#define PORT_PROTOCOL_RAW       PORT_FLAG_PROTOCOL
-
-//*****************************************************************************
-//
-// The length of the ucModName array in the tConfigParameters structure.  NOTE:
-// Be extremely careful if changing this since the structure packing relies
-// upon this values!
-//
-//*****************************************************************************
-#define MOD_NAME_LEN            40
-#define MAX_RELAYNAME_LEN		12
-
-//*****************************************************************************
-//
-//! This structure contains the S2E module parameters that are saved to flash.
-//! A copy exists in RAM for use during the execution of the application, which
-//! is loaded from flash at startup.  The modified parameter block can also be
-//! written back to flash for use on the next power cycle.
-//
-//*****************************************************************************
-typedef struct
-{
-    //
-    //! The sequence number of this parameter block.  When in RAM, this value
-    //! is not used.  When in flash, this value is used to determine the
-    //! parameter block with the most recent information.
-    //
-    unsigned char ucSequenceNum;
-
-    //
-    //! The CRC of the parameter block.  When in RAM, this value is not used.
-    //! When in flash, this value is used to validate the contents of the
-    //! parameter block (to avoid using a partially written parameter block).
-    //
-    unsigned char ucCRC;
-
-    //
-    //! The version of this parameter block.  This can be used to distinguish
-    //! saved parameters that correspond to an old version of the parameter
-    //! block.
-    //
-    unsigned char ucVersion;
-
-    //
-    //! Character field used to store various bit flags.
-    //
-    unsigned char ucFlags;
-
-    //
-    //! The TCP port number to be used for access to the UPnP Location URL that
-    //! is part of the discovery response message.
-    //
-    unsigned short usLocationURLPort;
-
-    //
-    //! Padding to ensure consistent parameter block alignment.
-    //
-    unsigned char ucReserved1[2];
-
-    //
-    //! The configuration parameters for each port available on the S2E
-    //! module.
-    //
-    tPortParameters sPort[MAX_S2E_PORTS];
-
-    //
-    //! An ASCII string used to identify the module to users via UPnP and
-    //! web configuration.
-    //
-    unsigned char ucModName[MOD_NAME_LEN];
-
-    //
-    //! The static IP address to use if DHCP is not in use.
-    //
-    unsigned long ulStaticIP;
-
-    //
-    //! The default gateway IP address to use if DHCP is not in use.
-    //
-    unsigned long ulGatewayIP;
-
-    //
-    //! The subnet mask to use if DHCP is not in use.
-    //
-    unsigned long ulSubnetMask;
+    // The subnet mask to use if DHCP is not in use.
+    ui32 ulSubnetMask;
 
     // Relay Names
-    unsigned char relayOneName[MAX_RELAYNAME_LEN];
-    unsigned char relayTwoName[MAX_RELAYNAME_LEN];
-    unsigned char relayThreeName[MAX_RELAYNAME_LEN];
-    unsigned char relayFourName[MAX_RELAYNAME_LEN];
+    ui8 relayOneName[SPLASHBASE_RELAYNAME_LEN];
+    ui8 relayTwoName[SPLASHBASE_RELAYNAME_LEN];
+    ui8 relayThreeName[SPLASHBASE_RELAYNAME_LEN];
+    ui8 relayFourName[SPLASHBASE_RELAYNAME_LEN];
 
-    unsigned short pwmFreq;
-    unsigned char colourMode;
-    unsigned char colourStepSize;
+    ui16 pwmFreq;
+    ui8 colourMode;
+    ui8 colourStepSize;
 
-    unsigned short colourSteps;
-    unsigned short reserved;
+    ui16 colourSteps;
+    ui16 reserved;
 
-    unsigned long colour1;
-    unsigned long colour2;
+    ui32 colour1;
+    ui32 colour2;
 
-    unsigned char SolderBridgeList[5];
+    // Time Outset in minutes
+    si32 timeOffset;
 
-    // Can be made shorter, it's a long to stop the structure packing
-    signed long   timeOffset;
+    // SNTP ServerAddress
+    ui8 sntpServerAddress[SNTP_SERVER_LEN];
+
+    // COSM Private key
+    ui8 cosmPrivKey[COSM_PRIV_KEY_LEN];
+
+    // 120 bytes to hold the direction and pin high/low initialisation
+    ui32 UserGpioInit[15][2];
 
     // 20x28 = 560 Bytes
-    unsigned char LogicConditionsBuffer[ 560 ];
+    ui8 LogicConditionsBuffer[ 560 ];
     //LOGIC_CONDITION LogicConditions[LOGIC_MAX_CONDITIONS];
 
-    unsigned char UserGpioDirection[16];
-    //
-    //! Padding to ensure the whole structure is 256 bytes long.
-    //
-    unsigned char ucReserved2[231];
+    // Padding to ensure the whole structure is 1024 bytes long.
+    ui8 ucReserved2[137];
 }
 tConfigParameters;
 
@@ -291,7 +89,8 @@ tConfigParameters;
 //! address.
 //
 //*****************************************************************************
-#define CONFIG_FLAG_STATICIP    0x80
+#define CONFIG_FLAG_STATICIP    	0x80
+#define CONFIG_USE_CUSTOM_SNTP    	0x40
 
 //*****************************************************************************
 //
@@ -317,236 +116,6 @@ tConfigParameters;
 //*****************************************************************************
 #define FLASH_PB_SIZE           1024
 
-//*****************************************************************************
-//
-//! The size of the ring buffers used for interface between the UART and
-//! telnet session (RX).
-//
-//*****************************************************************************
-#define RX_RING_BUF_SIZE        (256 * 2)
-
-//*****************************************************************************
-//
-//! The size of the ring buffers used for interface between the UART and
-//! telnet session (TX).
-//
-//*****************************************************************************
-#define TX_RING_BUF_SIZE        (256 * 6)
-
-//*****************************************************************************
-//
-//! Enable RFC-2217 (COM-PORT-OPTION) in the telnet server code.
-//
-//*****************************************************************************
-#define CONFIG_RFC2217_ENABLED  1
-
-//*****************************************************************************
-//
-//! The GPIO port on which the XVR_ON pin resides.
-//
-//*****************************************************************************
-#define PIN_XVR_ON_PORT         GPIO_PORTB_BASE
-
-//*****************************************************************************
-//
-//! The GPIO pin on which the XVR_ON pin resides.
-//
-//*****************************************************************************
-#define PIN_XVR_ON_PIN          GPIO_PIN_4
-
-//*****************************************************************************
-//
-//! The GPIO port on which the XVR_OFF_N pin resides.
-//
-//*****************************************************************************
-#define PIN_XVR_OFF_N_PORT      GPIO_PORTB_BASE
-
-//*****************************************************************************
-//
-//! The GPIO pin on which the XVR_OFF_N pin resides.
-//
-//*****************************************************************************
-#define PIN_XVR_OFF_N_PIN       GPIO_PIN_5
-
-//*****************************************************************************
-//
-//! The GPIO port on which the XVR_INV_N pin resides.
-//
-//*****************************************************************************
-#define PIN_XVR_INV_N_PORT      GPIO_PORTB_BASE
-
-//*****************************************************************************
-//
-//! The GPIO pin on which the XVR_INV_N pin resides.
-//
-//*****************************************************************************
-#define PIN_XVR_INV_N_PIN       GPIO_PIN_2
-
-//*****************************************************************************
-//
-//! The GPIO port on which the XVR_RDY pin resides.
-//
-//*****************************************************************************
-#define PIN_XVR_RDY_PORT        GPIO_PORTB_BASE
-
-//*****************************************************************************
-//
-//! The GPIO pin on which the XVR_RDY pin resides.
-//
-//*****************************************************************************
-#define PIN_XVR_RDY_PIN         GPIO_PIN_3
-
-//*****************************************************************************
-//
-//! The GPIO port on which the U0RX pin resides.
-//
-//*****************************************************************************
-#define PIN_U0RX_PORT           GPIO_PORTA_BASE
-
-//*****************************************************************************
-//
-//! The GPIO pin on which the U0RX pin resides.
-//
-//*****************************************************************************
-#define PIN_U0RX_PIN            GPIO_PIN_0
-
-//*****************************************************************************
-//
-//! The GPIO port on which the U0TX pin resides.
-//
-//*****************************************************************************
-#define PIN_U0TX_PORT           GPIO_PORTA_BASE
-
-//*****************************************************************************
-//
-//! The GPIO pin on which the U0TX pin resides.
-//
-//*****************************************************************************
-#define PIN_U0TX_PIN            GPIO_PIN_1
-
-//*****************************************************************************
-//
-//! The GPIO port on which the U0RTS pin resides.
-//
-//*****************************************************************************
-#define PIN_U0RTS_PORT          GPIO_PORTB_BASE
-
-//*****************************************************************************
-//
-//! The GPIO pin on which the U0RTS pin resides.
-//
-//*****************************************************************************
-#define PIN_U0RTS_PIN           GPIO_PIN_1
-
-//*****************************************************************************
-//
-//! The interrupt on which the U0RTS pin resides.
-//
-//*****************************************************************************
-#define PIN_U0RTS_INT           INT_GPIOB
-
-//*****************************************************************************
-//
-//! The GPIO port on which the U0CTS pin resides.
-//
-//*****************************************************************************
-#define PIN_U0CTS_PORT          GPIO_PORTB_BASE
-
-//*****************************************************************************
-//
-//! The GPIO pin on which the U0CTS pin resides.
-//
-//*****************************************************************************
-#define PIN_U0CTS_PIN           GPIO_PIN_0
-
-//*****************************************************************************
-//
-//! The GPIO port on which the U1RX pin resides.
-//
-//*****************************************************************************
-#define PIN_U1RX_PORT           GPIO_PORTD_BASE
-
-//*****************************************************************************
-//
-//! The GPIO pin on which the U1RX pin resides.
-//
-//*****************************************************************************
-#define PIN_U1RX_PIN            GPIO_PIN_2
-
-//*****************************************************************************
-//
-//! The GPIO port on which the U1TX pin resides.
-//
-//*****************************************************************************
-#define PIN_U1TX_PORT           GPIO_PORTD_BASE
-
-//*****************************************************************************
-//
-//! The GPIO pin on which the U1TX pin resides.
-//
-//*****************************************************************************
-#define PIN_U1TX_PIN            GPIO_PIN_3
-
-//*****************************************************************************
-//
-//! The GPIO port on which the U1RTS pin resides.
-//
-//*****************************************************************************
-#define PIN_U1RTS_PORT          GPIO_PORTA_BASE
-
-//*****************************************************************************
-//
-//! The GPIO pin on which the U1RTS pin resides.
-//
-//*****************************************************************************
-#define PIN_U1RTS_PIN           GPIO_PIN_2
-
-//*****************************************************************************
-//
-//! The interrupt on which the U1RTS pin resides.
-//
-//*****************************************************************************
-#define PIN_U1RTS_INT           INT_GPIOA
-
-//*****************************************************************************
-//
-//! The GPIO port on which the U1CTS pin resides.
-//
-//*****************************************************************************
-#define PIN_U1CTS_PORT          GPIO_PORTA_BASE
-
-//*****************************************************************************
-//
-//! The GPIO pin on which the U1CTS pin resides.
-//
-//*****************************************************************************
-#define PIN_U1CTS_PIN           GPIO_PIN_3
-
-//*****************************************************************************
-//
-// Close the Doxygen group.
-//! @}
-//
-//*****************************************************************************
-
-//*****************************************************************************
-//
-// A flag to indicate that a firmware update has been requested.
-//
-//*****************************************************************************
-extern tBoolean g_bStartBootloader;
-
-//*****************************************************************************
-//
-// Flags sent to the main loop indicating that it should update the IP address
-// after a short delay (to allow us to send a suitable page back to the web
-// browser telling it the address has changed).
-//
-//*****************************************************************************
-extern unsigned char g_cUpdateRequired;
-
-#define UPDATE_IP_ADDR 0x01
-#define UPDATE_ALL     0x02
 
 //*****************************************************************************
 //
@@ -567,4 +136,3 @@ extern void ConfigWebInit(void);
 extern void ConfigUpdateIPAddress(void);
 extern void ConfigUpdateAllParameters(tBoolean bUpdateIP);
 
-#endif // __CONFIG_H__
