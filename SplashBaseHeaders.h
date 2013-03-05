@@ -41,13 +41,13 @@
 #include "upnp.h"
 #endif
 
+#include "colourModes.h"
 #include "config.h"
 #include "cosm.h"
 #include "25AA02E48.h"
 #include "time.h"
 #include "adcControl.h"
 #include "buttonControl.h"
-#include "colourModes.h"
 #include "ethernetControl.h"
 #include "pwmControl.h"
 #include "relayControl.h"

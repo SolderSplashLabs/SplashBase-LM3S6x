@@ -71,7 +71,7 @@ ui8 i = 0;
 
 	if ( LogicRunning )
 	{
-		ulocaltime( Time_StampNow(g_sParameters.timeOffset), &currentTime );
+		ulocaltime( Time_StampNow(SystemConfig.timeOffset), &currentTime );
 		LogicCapturePortData();
 
 		networkConnected = Ethernet_Connected();
@@ -165,8 +165,7 @@ bool LogicAreCondSaved ( void )
 //*****************************************************************************
 void LogicSaveConditions ( void )
 {
-	memcpy(	g_sWorkingDefaultParameters.LogicConditionsBuffer, g_sParameters.LogicConditionsBuffer, sizeof(g_sWorkingDefaultParameters.LogicConditionsBuffer));
-
+	SysConfigSave();
 	LogicCondInSync = true;
 }
 
@@ -393,14 +392,14 @@ volatile ui8 tempUi8 = 0;
 		break;
 
 		case L_EVENT_DATE_AFTER :
-			if ( param1 > Time_StampNow(g_sParameters.timeOffset))
+			if ( param1 > Time_StampNow(SystemConfig.timeOffset))
 			{
 				result = true;
 			}
 		break;
 
 		case L_EVENT_DATE_BEFORE :
-			if ( param1 < Time_StampNow(g_sParameters.timeOffset))
+			if ( param1 < Time_StampNow(SystemConfig.timeOffset))
 			{
 				result = true;
 			}
@@ -599,7 +598,7 @@ void LogicStartStop ( bool start )
 	// -----------------------------
 
 	// Set up the conditions from the config
-	LogicConditions = (LOGIC_CONDITION *)g_sParameters.LogicConditionsBuffer;
+	LogicConditions = (LOGIC_CONDITION *)SystemConfig.LogicConditionsBuffer;
 
 	// Get the initial state
 	networkConnected = Ethernet_Connected();

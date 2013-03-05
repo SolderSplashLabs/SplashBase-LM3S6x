@@ -556,15 +556,13 @@ struct pbuf *nextP;
 
 			if (tempInt > SPLASHBASE_NAME_LEN-1) tempInt = SPLASHBASE_NAME_LEN-1;
 
-			strncpy((char *)g_sParameters.splashBaseName, (char *)&pucData[2], tempInt);
-			g_sParameters.splashBaseName[tempInt] = 0;
-
-			//LocatorAppTitleSet((char *)g_sParameters.ucModName);
+			strncpy((char *)SystemConfig.splashBaseName, (char *)&pucData[2], tempInt);
+			SystemConfig.splashBaseName[tempInt] = 0;
 
 			// And the SolderSplash UDP Protocol
-			SSC_SetUnitName((ui8 *)g_sParameters.splashBaseName);
+			SSC_SetUnitName((ui8 *)SystemConfig.splashBaseName);
 
-			ConfigSave();
+			SysConfigSave();
 		break;
 		
 		case SSC_SET_RELAY_NAME :
@@ -576,47 +574,36 @@ struct pbuf *nextP;
 			switch (pucData[1])
 			{
 				case 0 :
-					memcpy(g_sParameters.relayOneName, (char *)&pucData[3], tempInt);
-					if (tempInt < SPLASHBASE_RELAYNAME_LEN) g_sParameters.relayOneName[tempInt] = 0;
+					memcpy(SystemConfig.relayOneName, (char *)&pucData[3], tempInt);
+					if (tempInt < SPLASHBASE_RELAYNAME_LEN) SystemConfig.relayOneName[tempInt] = 0;
 
-					strncpy((char *)g_sWorkingDefaultParameters.relayOneName, (char *)g_sParameters.relayOneName, SPLASHBASE_RELAYNAME_LEN);
-
-					SSC_SetRelayName((ui8 *)g_sParameters.relayOneName, 0 );
+					SSC_SetRelayName((ui8 *)SystemConfig.relayOneName, 0 );
 
 				break;
 
 				case 1 :
-					memcpy(g_sParameters.relayTwoName, (char *)&pucData[3], tempInt);
-					if (tempInt < SPLASHBASE_RELAYNAME_LEN) g_sParameters.relayTwoName[tempInt] = 0;
+					memcpy(SystemConfig.relayTwoName, (char *)&pucData[3], tempInt);
+					if (tempInt < SPLASHBASE_RELAYNAME_LEN) SystemConfig.relayTwoName[tempInt] = 0;
 
-					strncpy((char *)g_sWorkingDefaultParameters.relayTwoName, (char *)g_sParameters.relayTwoName, SPLASHBASE_RELAYNAME_LEN);
-
-					SSC_SetRelayName((ui8 *)g_sParameters.relayTwoName, 1 );
+					SSC_SetRelayName((ui8 *)SystemConfig.relayTwoName, 1 );
 				break;
 
 				case 2 :
-					memcpy(g_sParameters.relayThreeName, (char *)&pucData[3], tempInt);
-					if (tempInt < SPLASHBASE_RELAYNAME_LEN) g_sParameters.relayThreeName[tempInt] = 0;
+					memcpy(SystemConfig.relayThreeName, (char *)&pucData[3], tempInt);
+					if (tempInt < SPLASHBASE_RELAYNAME_LEN) SystemConfig.relayThreeName[tempInt] = 0;
 
-					strncpy((char *)g_sWorkingDefaultParameters.relayThreeName, (char *)g_sParameters.relayThreeName, SPLASHBASE_RELAYNAME_LEN);
-
-					SSC_SetRelayName((ui8 *)g_sParameters.relayThreeName, 2 );
+					SSC_SetRelayName((ui8 *)SystemConfig.relayThreeName, 2 );
 				break;
 
 				case 3 :
-					memcpy(g_sParameters.relayFourName, (char *)&pucData[3], tempInt);
-					if (tempInt < SPLASHBASE_RELAYNAME_LEN) g_sParameters.relayFourName[tempInt] = 0;
+					memcpy(SystemConfig.relayFourName, (char *)&pucData[3], tempInt);
+					if (tempInt < SPLASHBASE_RELAYNAME_LEN) SystemConfig.relayFourName[tempInt] = 0;
 
-					strncpy((char *)g_sWorkingDefaultParameters.relayFourName, (char *)g_sParameters.relayFourName, SPLASHBASE_RELAYNAME_LEN);
-
-					SSC_SetRelayName((ui8 *)g_sParameters.relayFourName, 3 );
+					SSC_SetRelayName((ui8 *)SystemConfig.relayFourName, 3 );
 				break;
 			}
 
-			// TODO : TEMP pls remove
-			LogicSaveConditions();
-
-			ConfigSave();
+			SysConfigSave();
 
 		break;
 

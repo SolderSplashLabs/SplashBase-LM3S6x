@@ -82,6 +82,97 @@ typedef struct
 }
 tConfigParameters;
 
+#ifdef _CONFIG_
+
+static const tConfigParameters CONFIG_FACTORY_DEFAULTS =
+{
+    // The sequence number
+    (ui8)0,
+
+    // Checksum
+    (ui8)0,
+
+    // version
+    (ui8)0,
+
+    // flags
+    (ui8)0,
+
+    // SplashBase Name
+	{
+		'S','p','l','a','s','h','B','a','s','e', 0 , 0 , 0 , 0 , 0 , 0,
+		 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0
+	},
+
+    // Static IP address
+    0x00000000,
+
+    // Default gateway IP address (used only if static IP is in use).
+    0x00000000,
+
+    // Subnet mask (used only if static IP is in use).
+    0xFFFFFF00,
+
+    // Relay Names
+    {
+    	'R','e','l','a','y','1', 0, 0, 0, 0, 0, 0,
+    },
+    {
+        'R','e','l','a','y','2', 0, 0, 0, 0, 0, 0,
+    },
+    {
+        'R','e','l','a','y','3', 0, 0, 0, 0, 0, 0,
+    },
+    {
+        'R','e','l','a','y','4', 0, 0, 0, 0, 0, 0,
+    },
+
+    // PWM freq = 10kHz
+    (ui16)5000,
+
+    (ui8)COLOUR_MODE_OFF,
+    // Step length ( in ticks 10ms )
+    (ui8)1,
+
+    // No of steps between top and bottom
+    (ui16)255,
+
+    // Reserved to fill a whole
+    (ui16)0,
+
+    // Top Colour (Colour1)
+    (ui32)0x00000000,
+
+    // Bottom Colour (Colour2)
+    (ui32)0x00000000,
+
+    // Time offset
+    (ui32)0,
+
+    // SNTP Address 0.pool.ntp.org
+	{
+		'0','.','p','o','o','l','.','n','t','p','.','o','r','g', 0 , 0 ,
+		 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ,
+	},
+
+	// SNTP Address 0.pool.ntp.org
+	{
+		 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ,
+		 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ,
+		 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ,
+		 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ,
+	},
+
+    //
+    // (compiler will pad to the full length)
+    //
+
+};
+
+tConfigParameters SystemConfig;
+
+#endif
+
 //*****************************************************************************
 //
 //! If this flag is set in the ucFlags field of tConfigParameters, the module
@@ -123,15 +214,15 @@ tConfigParameters;
 // with public API function prototypes.
 //
 //*****************************************************************************
-extern tConfigParameters g_sParameters;
+extern tConfigParameters SystemConfig;
 extern tConfigParameters g_sWorkingDefaultParameters;
 
 extern const tConfigParameters *g_psDefaultParameters;
 extern const tConfigParameters *const g_psFactoryParameters;
-extern void ConfigInit(void);
-extern void ConfigLoadFactory(void);
-extern void ConfigLoad(void);
-extern void ConfigSave(void);
+extern void SysConfigInit(void);
+extern void SysConfigFactoryDefault(void);
+extern void SysConfigLoad(void);
+extern void SysConfigSave(void);
 extern void ConfigWebInit(void);
 extern void ConfigUpdateIPAddress(void);
 extern void ConfigUpdateAllParameters(tBoolean bUpdateIP);

@@ -59,6 +59,7 @@ void Ethernet_Task ( void )
 // *****************************************************************************
 ui32 Ethernet_GetIp ( void )
 {
+	IpAddress = lwIPLocalIPAddrGet();
 	return ( IpAddress );
 }
 
@@ -94,12 +95,41 @@ void Ethernet_GetMacAddress ( ui8 *pBuf )
 }
 
 // *****************************************************************************
+//
 // Ethernet_GetIp
 //
 // *****************************************************************************
 bool Ethernet_Connected( void )
 {
 	return (EthernetConnected);
+}
+
+
+// *****************************************************************************
+//
+// Ethernet_ReConfig - Called if/when the system config is changed
+//
+// *****************************************************************************
+void Ethernet_ReConfig ( void )
+{
+ui32 ip = 0;
+ui32 subnet = 0;
+ui32 gateway = 0;
+
+	if((SystemConfig.flags & CONFIG_FLAG_STATICIP) == CONFIG_FLAG_STATICIP)
+	{
+		// lwIPNetworkConfigChange flips the supplied ui32 we store it correctly
+		// So I either edit TI code or flip it before it does, wasteful but works for now
+		ip = htonl(SystemConfig.ulStaticIP);
+		subnet = htonl(SystemConfig.ulSubnetMask);
+		gateway = htonl(SystemConfig.ulGatewayIP);
+
+		lwIPNetworkConfigChange(ip, subnet, gateway, IPADDR_USE_STATIC);
+	}
+	else
+	{
+		lwIPNetworkConfigChange(0, 0, 0, IPADDR_USE_DHCP);
+	}
 }
 
 //*****************************************************************************
@@ -194,8 +224,8 @@ void Ethernet_Init ( void )
 
 	// Init the lwip stack
 
-	lwIPInit((const unsigned char *)macAddr, g_sParameters.ulStaticIP, g_sParameters.ulSubnetMask,
-	             g_sParameters.ulGatewayIP, ((g_sParameters.flags &
+	lwIPInit((const unsigned char *)macAddr, SystemConfig.ulStaticIP, SystemConfig.ulSubnetMask,
+	             SystemConfig.ulGatewayIP, ((SystemConfig.flags &
 	             CONFIG_FLAG_STATICIP) ? IPADDR_USE_STATIC : IPADDR_USE_DHCP));
 
 

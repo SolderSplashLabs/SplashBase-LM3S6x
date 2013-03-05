@@ -18,4 +18,5 @@ void Ethernet_GetMacAddress ( ui8 *pBuf );
 ui32 Ethernet_GetIp ( void );
 ui32 Ethernet_GetGatewayIp ( void );
 ui32 Ethernet_GetNetmask ( void );
+void Ethernet_ReConfig ( void );
 

@@ -286,6 +286,7 @@ bool printConf = false;
 volatile struct ip_addr ipaddr;
 ui8 *tempChar;
 ui8 macAddr[8];
+ui32 tempIp = 0;
 
     (void) argc;
     (void) argv;
@@ -297,6 +298,9 @@ ui8 macAddr[8];
     	if ( 'd' == argv[1][0] )
     	{
     		// TODO : set to dynamic ip
+    		SystemConfig.flags &= ~CONFIG_FLAG_STATICIP;
+    		Ethernet_ReConfig();
+    		printConf = true;
     	}
     	else if ( 's' == argv[1][0] )
     	{
@@ -304,30 +308,33 @@ ui8 macAddr[8];
 			{
 				printConf = true;
 
-				if ( inet_aton(&argv[2][0], &ipaddr ) )
+				tempIp = inet_addr(&argv[2][0]);
+				if ( INADDR_NONE != tempIp )
 				{
 					// Valid Ip
-					g_sParameters.ulStaticIP = ipaddr.addr;
+					SystemConfig.ulStaticIP = tempIp;
 				}
 				else
 				{
 					printConf = false;
 				}
 
-				if ( inet_aton(&argv[3][0], &ipaddr ) )
+				tempIp = inet_addr(&argv[3][0]);
+				if ( INADDR_NONE != tempIp )
 				{
 					// Valid Netmask Ip
-					g_sParameters.ulSubnetMask = ipaddr.addr;
+					SystemConfig.ulSubnetMask = tempIp;
 				}
 				else
 				{
 					printConf = false;
 				}
 
-				if ( inet_aton(&argv[4][0], &ipaddr ) )
+				tempIp = inet_addr(&argv[4][0]);
+				if ( INADDR_NONE != tempIp )
 				{
 					// Valid Gateway Ip
-					g_sParameters.ulGatewayIP = ipaddr.addr;
+					SystemConfig.ulGatewayIP = tempIp;
 				}
 				else
 				{
@@ -337,13 +344,13 @@ ui8 macAddr[8];
 				if (printConf)
 				{
 					// Everything accepted
-					g_sParameters.flags |= CONFIG_FLAG_STATICIP;
-					ConfigUpdateIPAddress();
+					SystemConfig.flags |= CONFIG_FLAG_STATICIP;
+					Ethernet_ReConfig();
 				}
 				else
 				{
 					// Error revert to dynamic
-					g_sParameters.flags &= ~CONFIG_FLAG_STATICIP;
+					SystemConfig.flags &= ~CONFIG_FLAG_STATICIP;
 				}
 
 			}
@@ -357,7 +364,7 @@ ui8 macAddr[8];
 
     if ( printConf )
     {
-		if ( g_sParameters.flags & CONFIG_FLAG_STATICIP )
+		if ( SystemConfig.flags & CONFIG_FLAG_STATICIP )
 		{
 			UARTprintf("Static IP\n");
 		}
@@ -441,21 +448,21 @@ tTime currentTime;
 				if ('-' == argv[3][0])
 				{
 					// The name lies, the TI ustrtoul will detect a negative value and give the right result
-					g_sParameters.timeOffset = ustrtoul((const char *)&argv[3][0], 0, 10);
+					SystemConfig.timeOffset = ustrtoul((const char *)&argv[3][0], 0, 10);
 				}
 				else
 				{
-					g_sParameters.timeOffset = ustrtoul((const char *)&argv[3], 0, 10);
+					SystemConfig.timeOffset = ustrtoul((const char *)&argv[3], 0, 10);
 				}
 			}
 
 			// Print current offset
-			UARTprintf("Time offset : %i\n", g_sParameters.timeOffset );
+			UARTprintf("Time offset : %i\n", SystemConfig.timeOffset );
 		}
     }
 	else
 	{
-		ulocaltime(Time_StampNow(g_sParameters.timeOffset), &currentTime);
+		ulocaltime(Time_StampNow(SystemConfig.timeOffset), &currentTime);
 		UARTprintf("%02d-%02d-%02d %02d:%02d:%02d GMT\n", currentTime.usYear, (currentTime.ucMon+1), currentTime.ucMday, currentTime.ucHour, currentTime.ucMin, currentTime.ucSec);
 	}
 
@@ -605,9 +612,8 @@ CMD_Adcs (int argc, char **argv)
 //*****************************************************************************
 int CMD_Factory (int argc, char **argv)
 {
-	ConfigLoadFactory();
-	ConfigSave();
-	ConfigUpdateAllParameters(true);
+	SysConfigFactoryDefault();
+	SysConfigSave();
 	UARTprintf("Reverted To Factory Defaults\n");
 
 	return (0);

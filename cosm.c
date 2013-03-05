@@ -11,25 +11,6 @@
 #include <string.h>
 #include "SplashBaseHeaders.h"
 
-
-/*
-#include "inc/hw_ints.h"
-#include "inc/hw_memmap.h"
-#include "inc/hw_types.h"
-#include "inc/hw_nvic.h"
-#include "lwiplib.h"
-#include "utils/locator.h"
-#include "lwip/dns.h"
-#include "utils/ustdlib.h"
-
-#include "datatypes.h"
-
-#include "adcControl.h"
-
-#include "cosm.h"
-*/
-
-
 struct ip_addr CosmIpAddress;
 char CosmCommandBuffer[255];
 unsigned long CosmCommandLen;

@@ -168,7 +168,7 @@ void InitialiseHW ( void )
 	relayInit();
 
 	// Grab the Config from Flash
-	ConfigInit();
+	SysConfigInit();
 
 	relayInit();
 
@@ -228,12 +228,12 @@ int main(void)
 	// Initalise the SolderSplash UDP Coms
 	SSC_Init();
 	SSC_MACAddrSet((ui8 *)tmpMacAddr);
-	SSC_SetUnitName((ui8 *)g_sParameters.splashBaseName);
+	SSC_SetUnitName((ui8 *)SystemConfig.splashBaseName);
 
-	SSC_SetRelayName((ui8 *)g_sParameters.relayOneName, 0);
-	SSC_SetRelayName((ui8 *)g_sParameters.relayTwoName, 1);
-	SSC_SetRelayName((ui8 *)g_sParameters.relayThreeName, 2);
-	SSC_SetRelayName((ui8 *)g_sParameters.relayFourName, 3);
+	SSC_SetRelayName((ui8 *)SystemConfig.relayOneName, 0);
+	SSC_SetRelayName((ui8 *)SystemConfig.relayTwoName, 1);
+	SSC_SetRelayName((ui8 *)SystemConfig.relayThreeName, 2);
+	SSC_SetRelayName((ui8 *)SystemConfig.relayFourName, 3);
 
 	while (1)
 	{
