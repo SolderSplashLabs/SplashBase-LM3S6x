@@ -11,6 +11,7 @@
 
 #define COLOUR_MODES
 #include "SplashBaseHeaders.h"
+#include "utils/ustdlib.h"
 
 /*
 #include "inc/hw_ints.h"
@@ -402,15 +403,17 @@ void ColourModeRandomBounce ( void )
 	// Same as bounce but we randomise the value after each cycle
 	if ( 1 == bounceCycle )
 	{
-		random = RandomNumber();
+		//random = RandomNumber();
 		
+		random = urand();
+
 		ColourSettings.topRed = 0x000000FF & (random >> 16);
 		ColourSettings.topGreen = 0x000000FF & (random >> 8);
 		ColourSettings.topBlue = 0x000000FF & random;
 	}
 	else if ( 2 == bounceCycle )
 	{
-		random = RandomNumber();
+		random = urand();
 		
 		ColourSettings.bottomRed = 0x000000FF & (random >> 16);
 		ColourSettings.bottomGreen = 0x000000FF & (random >> 8);

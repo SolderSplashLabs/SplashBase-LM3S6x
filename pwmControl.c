@@ -12,23 +12,6 @@
 #define PWMCONTROL
 #include "SplashBaseHeaders.h"
 
-/*
-#include "inc/hw_ints.h"
-#include "inc/hw_memmap.h"
-//#include "inc/hw_nvic.h"
-#include "inc/hw_types.h"
-#include "driverlib/gpio.h"
-#include "driverlib/sysctl.h"
-#include "driverlib/systick.h"
-#include "driverlib/timer.h"
-
-#include "inc/lm3s6432.h"
-#include "datatypes.h"
-
-#define PWMCONTROL
-#include "pwmControl.h"
-*/
-
 // Each 32 timer can be split into 2
 // each 16bit chunk is assigned to a CCP output
 // in periodic timer, the timer counts down from periodic interval value 

@@ -16,44 +16,6 @@
 
 #include "SplashBaseHeaders.h"
 
-/*
-#include "inc/hw_ints.h"
-#include "inc/hw_memmap.h"
-#include "inc/hw_nvic.h"
-#include "inc/hw_sysctl.h"
-#include "inc/hw_types.h"
-#include "driverlib/gpio.h"
-#include "driverlib/interrupt.h"
-#include "driverlib/sysctl.h"
-#include "driverlib/systick.h"
-#include "utils/uartstdio.h"				// Slightly modified TI version
-
-#include "globals.h"
-
-#ifdef UPNP_ENABLED
-#include "upnp.h"
-#endif
-
-#ifdef HTTP_ENABLED
-#include "httpserver_raw/httpd.h"
-#endif
-
-#include "datatypes.h"
-
-#include "logicController.h"
-#include "config.h"
-#include "ethernetControl.h"
-#include "adcControl.h"
-#include "colourModes.h"
-#include "pwmControl.h"
-#include "relayControl.h"
-#include "udpControl.h"
-#include "solderBridge/solderBridgeSpi.h"
-#include "solderBridge/externalGpio.h"
-#include "time.h"
-#include "serialControl.h"
-*/
-
 // *****************************************************************************
 // SysTickIntHandler
 // Called By the SysTick Interrupt
@@ -79,7 +41,7 @@ void SysTickIntHandler(void)
 
 	ColourModeTick();
 
-	// Service the ethernet and TCP Stack
+	// Service the Ethernet and TCP Stack
 	Ethernet_Task();
 
 	// Measure any analogue inputs
@@ -163,14 +125,15 @@ void InitialiseHW ( void )
     //
     SysCtlPeripheralClockGating(true);
 
-	AdcInit();
-	pwmInit();
-	relayInit();
-
 	// Grab the Config from Flash
 	SysConfigInit();
 
-	relayInit();
+    // Set up the GPIO as specified by the user
+    UserGpioInit();
+
+	AdcInit();
+	pwmInit();
+	RelayInit();
 
 	//usrand(0x23482937);
 

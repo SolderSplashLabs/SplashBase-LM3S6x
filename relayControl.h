@@ -24,8 +24,8 @@ ui8 RelayStatus = false;
 extern ui8 RelayStatus;
 //extern ui8 RelaysClosed;
 
-void relayInit( void );
-void relayControl( ui8 closedRelays, ui8 mask );
+void RelayInit( void );
+void RelayControl( ui8 closedRelays, ui8 mask );
 void relaysOn( void );
 void relaysOff( void );
 ui8 RelayGetClosed( void );

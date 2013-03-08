@@ -483,7 +483,7 @@ struct pbuf *nextP;
 		
 		case SSC_RELAY_CON :
 			// bit fields to indicate which relays need to be on or off
-			relayControl( pucData[1], pucData[2]  );
+			RelayControl( pucData[1], pucData[2]  );
 		break;
 	
 		case SSC_PWM_DUTY :
@@ -551,18 +551,7 @@ struct pbuf *nextP;
 		break;
 	
 		case SSC_SET_UNIT_NAME :
-			// String length
-			tempInt = pucData[1];
-
-			if (tempInt > SPLASHBASE_NAME_LEN-1) tempInt = SPLASHBASE_NAME_LEN-1;
-
-			strncpy((char *)SystemConfig.splashBaseName, (char *)&pucData[2], tempInt);
-			SystemConfig.splashBaseName[tempInt] = 0;
-
-			// And the SolderSplash UDP Protocol
-			SSC_SetUnitName((ui8 *)SystemConfig.splashBaseName);
-
-			SysConfigSave();
+			SysSetBaseName( (ui8 *)&pucData[2] , pucData[1] );
 		break;
 		
 		case SSC_SET_RELAY_NAME :

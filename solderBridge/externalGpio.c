@@ -386,6 +386,24 @@ void ExtGpio_SetDirection ( ui8 port, ui16 mask, ui16 dir )
 
 // *****************************************************************************
 //
+// ExtGpio_SetDirection : Set the direction of each bit of the selected PCA9555D
+// A set bit indicates an output
+//
+// *****************************************************************************
+ui16 ExtGpio_GetDirection ( ui8 port )
+{
+	if ( port < PCA_MAX )
+	{
+		return( IoExpanders.direction[ port ] );
+	}
+	else
+	{
+		return ( 0 );
+	}
+}
+
+// *****************************************************************************
+//
 // ExtGpio_SetPort : Change port output
 //
 // *****************************************************************************

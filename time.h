@@ -1,6 +1,7 @@
 #define SECONDS_IN_AN_MIN		60L
 #define SECONDS_IN_AN_HOUR		3600L
 #define SECONDS_IN_AN_DAY		86400L
+#define SECONDS_IN_HALF_DAY		43200L
 
 
 typedef struct TIME_STRUCT

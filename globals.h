@@ -24,9 +24,6 @@
 #define SPLASHBASE_BOARD_REV	2
 //#define SPLASHBASE_BOARD_REV	1
 
-// Define to enable HTTP
-//#define HTTP_ENABLED
-
 // Define to enable UPNP
 //#define UPNP_ENABLED
 // NOTE : You need to define LWIP_UPNP in lwipopts as well

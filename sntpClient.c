@@ -127,7 +127,7 @@ void SntpGetTime( void )
 	// First resolve the DNS if needed ...
 	if (SntpServerIpAddr.addr == 0)
 	{
-		dns_gethostbyname("0.pool.ntp.org", &SntpServerIpAddr, SntpServerFound, NULL);
+		dns_gethostbyname(SystemConfig.sntpServerAddress, &SntpServerIpAddr, SntpServerFound, NULL);
 	}
 	else
 	{

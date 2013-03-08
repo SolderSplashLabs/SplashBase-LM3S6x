@@ -27,15 +27,7 @@
 #ifdef UPNP_ENABLED
 
 #include <string.h>
-#include "inc/hw_memmap.h"
-#include "inc/hw_types.h"
-#include "driverlib/ethernet.h"
-#include "lwiplib.h"
 #include "utils/ustdlib.h"
-
-#include "datatypes.h"
-
-#include "config.h"
 #include "upnp.h"
 
 //*****************************************************************************
@@ -288,7 +280,7 @@ UPnP_send_data(struct tcp_pcb *pcb, tUPnPState *pState)
 {
     unsigned long ulIPAddr;
     unsigned char pucMACAddr[6];
-    static char pcBuf[30 + MOD_NAME_LEN];
+    static char pcBuf[30 + SPLASHBASE_NAME_LEN];
     err_t err;
 
     //
@@ -323,7 +315,7 @@ UPnP_send_data(struct tcp_pcb *pcb, tUPnPState *pState)
     {
     }
 
-    usprintf(pcBuf, g_pcDescriptionXML2ofN, &g_sParameters.ucModName[0],
+    usprintf(pcBuf, g_pcDescriptionXML2ofN, &SystemConfig.splashBaseName[0],
              ((ulIPAddr >>  0) & 0xFF), ((ulIPAddr >>  8) & 0xFF),
              ((ulIPAddr >> 16) & 0xFF), ((ulIPAddr >> 24) & 0xFF));
     err = tcp_write(pcb, pcBuf, strlen(pcBuf), 1);
@@ -840,7 +832,7 @@ UPnPStart(void)
     //
     pcb = tcp_new();
     g_psUPnP_ListenPCB = pcb;
-    tcp_bind(pcb, IP_ADDR_ANY, g_sParameters.usLocationURLPort);
+    tcp_bind(pcb, IP_ADDR_ANY, 6432);
     pcb = tcp_listen(pcb);
     tcp_accept(pcb, UPnP_accept);
 
@@ -937,7 +929,7 @@ UPnPHandler(unsigned long ulTimeMS)
             usprintf(pcBuf, g_pcDiscoverRoot1, ((ulIPAddr >>  0) & 0xFF),
                      ((ulIPAddr >>  8) & 0xFF), ((ulIPAddr >> 16) & 0xFF),
                      ((ulIPAddr >> 24) & 0xFF),
-                     g_sParameters.usLocationURLPort, pucMACAddr[0],
+                     6432, pucMACAddr[0],
                      pucMACAddr[1], pucMACAddr[2], pucMACAddr[3],
                      pucMACAddr[4], pucMACAddr[5]);
 
@@ -968,7 +960,7 @@ UPnPHandler(unsigned long ulTimeMS)
             usprintf(pcBuf, g_pcDiscoverRoot2, ((ulIPAddr >>  0) & 0xFF),
                      ((ulIPAddr >>  8) & 0xFF), ((ulIPAddr >> 16) & 0xFF),
                      ((ulIPAddr >> 24) & 0xFF),
-                     g_sParameters.usLocationURLPort, pucMACAddr[0],
+                     6432, pucMACAddr[0],
                      pucMACAddr[1], pucMACAddr[2], pucMACAddr[3],
                      pucMACAddr[4], pucMACAddr[5], pucMACAddr[0],
                      pucMACAddr[1], pucMACAddr[2], pucMACAddr[3],
@@ -1000,7 +992,7 @@ UPnPHandler(unsigned long ulTimeMS)
             usprintf(pcBuf, g_pcDiscoverRoot3, ((ulIPAddr >>  0) & 0xFF),
                      ((ulIPAddr >>  8) & 0xFF), ((ulIPAddr >> 16) & 0xFF),
                      ((ulIPAddr >> 24) & 0xFF),
-                     g_sParameters.usLocationURLPort, pucMACAddr[0],
+                     6432, pucMACAddr[0],
                      pucMACAddr[1], pucMACAddr[2], pucMACAddr[3],
                      pucMACAddr[4], pucMACAddr[5]);
 
@@ -1031,7 +1023,7 @@ UPnPHandler(unsigned long ulTimeMS)
                 usprintf(pcBuf, g_pcResponseRoot1, ((ulIPAddr >>  0) & 0xFF),
                          ((ulIPAddr >>  8) & 0xFF), ((ulIPAddr >> 16) & 0xFF),
                          ((ulIPAddr >> 24) & 0xFF),
-                         g_sParameters.usLocationURLPort, pucMACAddr[0],
+                         6432, pucMACAddr[0],
                          pucMACAddr[1], pucMACAddr[2], pucMACAddr[3],
                          pucMACAddr[4], pucMACAddr[5]);
 

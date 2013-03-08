@@ -11,37 +11,19 @@
 
 #include "SplashBaseHeaders.h"
 
-/*
-#include "inc/hw_ints.h"
-#include "inc/hw_memmap.h"
-#include "inc/hw_nvic.h"
-#include "inc/hw_sysctl.h"
-#include "inc/hw_types.h"
-#include "driverlib/gpio.h"
-#include "driverlib/interrupt.h"
-#include "driverlib/sysctl.h"
-#include "driverlib/systick.h"
-#include "driverlib/ethernet.h"
-
-#include "lwiplib.h"			// lwip TCP/IP Stack
-
-#include "datatypes.h"
-#include "globals.h"
-
-#include "time.h"
-*/
-
 ui32 Uptime = 0;
 ui32 UnixTime = 0;
 ui32 MsTimer = 0;
 
 // *****************************************************************************
+//
 // Time_Task
 //
 // *****************************************************************************
 void Time_Task ( void )
 {
 	static ui16 msCounter = 0;
+	static ui32 ntpCounter = 0;
 
 	MsTimer += SYSTICKMS;
 	msCounter += SYSTICKMS;
@@ -51,6 +33,14 @@ void Time_Task ( void )
 		msCounter = msCounter - 1000;
 		UnixTime++;
 		Uptime++;
+		ntpCounter ++;
+
+		if ( ntpCounter >= SECONDS_IN_HALF_DAY )
+		{
+			// Each day update the clock
+			SntpGetTime();
+			ntpCounter = 0;
+		}
 	}
 
 	// TODO : Refresh the time via SNTP every day/week

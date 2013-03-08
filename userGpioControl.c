@@ -12,25 +12,35 @@
 */
 #define _USER_GPIO_
 #include "SplashBaseHeaders.h"
-
-/*
-#include "inc/hw_ints.h"
-#include "inc/hw_memmap.h"
-#include "inc/hw_nvic.h"
-#include "inc/hw_types.h"
-#include "driverlib/gpio.h"
-#include "driverlib/sysctl.h"
-#include "driverlib/systick.h"
-
-#include "datatypes.h"
-#include "solderBridge/externalGpio.h"
-
-#define _USER_GPIO_
-#include "userGpioControl.h"
-*/
+#include "inc/hw_gpio.h"
 
 // Mask of Outputs controlled by the application that the user should not be allowed to control
 static ui32 UserGpioMask[ GPIO_PORT_TOTAL ];
+
+
+// *****************************************************************************
+//
+// UserGpioInit - On boot set the GPIO up to the user specification
+//
+// *****************************************************************************
+void UserGpioInit ( void )
+{
+ui8 i = 0;
+ui32 mask = 0;
+
+	if ( SystemConfig.flags & CONFIG_USER_GPIO_INIT )
+	{
+		for (i=0; i<GPIO_PORT_TOTAL; i++)
+		{
+			// Get the port pins I should not touch cleared from the mask
+			mask = UserGpio_AppGetMask ( i, 0xFFFFFFFF );
+
+			// Now apply initialisation to the port pins I can touch
+			UserGpioDirection( i, mask, SystemConfig.UserGpioInit[i][0] );
+			UserGpioSetOutputs(i, mask, SystemConfig.UserGpioInit[i][1] );
+		}
+	}
+}
 
 
 // *****************************************************************************
@@ -145,7 +155,7 @@ bool result = false;
 // UserGpioGet - Retrieves the selected port pin status
 //
 //*****************************************************************************
-ui32 UserGpioGet ( ui8 portNo, ui32 *buffer )
+bool UserGpioGet ( ui8 portNo, ui32 *buffer )
 {
 bool result = false;
 
@@ -162,6 +172,39 @@ bool result = false;
 			// Get External Port
 			// This change effects external I/O
 			ExtGpio_GetPort( (portNo-GPIO_PORT_MAX_MCU), (ui16 *)buffer );
+			result = true;
+		}
+		else
+		{
+			// Out of range!
+		}
+	}
+
+	return ( result );
+}
+
+//*****************************************************************************
+//
+// UserGpioDirGet - Retrieves the selected port direction, redirecting it to
+//					IO expanding bridges if needed
+//
+//*****************************************************************************
+bool UserGpioDirGet ( ui8 portNo, ui32 *buffer )
+{
+bool result = false;
+
+	if (buffer != 0)
+	{
+		if (portNo < GPIO_PORT_MAX_MCU)
+		{
+			// Get MCU port direction - There's no driver lib function for this so we do it ourselves
+			*buffer = HWREG(GPIO_REGISTERS[portNo] + GPIO_O_DIR);
+			result = true;
+		}
+		else if ( portNo < (GPIO_PORT_TOTAL))
+		{
+			// Get External Port Direction
+			*buffer = ExtGpio_GetDirection( (portNo-GPIO_PORT_MAX_MCU) );
 			result = true;
 		}
 		else

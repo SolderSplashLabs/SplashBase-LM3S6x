@@ -54,3 +54,4 @@ bool ExtGpio_ReadPort ( ui8 address, ui16 *portValue );
 void ExtGpio_SetPort ( ui8 port, ui16 mask, ui16 value );
 void ExtGpio_GetPort ( ui8 port, ui16 *buffer );
 void ExtGpio_SetDirection ( ui8 port, ui16 mask, ui16 dir );
+ui16 ExtGpio_GetDirection ( ui8 port );

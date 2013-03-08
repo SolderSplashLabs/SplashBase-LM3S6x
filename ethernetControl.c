@@ -12,31 +12,6 @@
 */
 #include "SplashBaseHeaders.h"
 
-/*
-#include "inc/hw_ints.h"
-#include "inc/hw_memmap.h"
-#include "inc/hw_nvic.h"
-#include "inc/hw_sysctl.h"
-#include "inc/hw_types.h"
-#include "driverlib/gpio.h"
-#include "driverlib/interrupt.h"
-#include "driverlib/sysctl.h"
-#include "driverlib/systick.h"
-#include "driverlib/ethernet.h"
-
-#include "lwiplib.h"				// lwip TCP/IP Stack
-#include "upnp.h"
-
-#include "datatypes.h"
-#include "globals.h"
-
-#include "config.h"
-
-#include "25AA02E48.h"
-#include "sntpClient.h"
-#include "ethernetControl.h"
-*/
-
 bool EthernetConnected = false;
 bool DhcpFail = false;
 ui32 IpAddress = 0;
@@ -60,6 +35,8 @@ void Ethernet_Task ( void )
 ui32 Ethernet_GetIp ( void )
 {
 	IpAddress = lwIPLocalIPAddrGet();
+
+	IpAddress = htonl(IpAddress);
 	return ( IpAddress );
 }
 
@@ -69,7 +46,7 @@ ui32 Ethernet_GetIp ( void )
 // *****************************************************************************
 ui32 Ethernet_GetGatewayIp ( void )
 {
-	return ( lwIPLocalGWAddrGet() );
+	return ( htonl(lwIPLocalGWAddrGet()) );
 }
 
 // *****************************************************************************
@@ -78,7 +55,7 @@ ui32 Ethernet_GetGatewayIp ( void )
 // *****************************************************************************
 ui32 Ethernet_GetNetmask ( void )
 {
-	return ( lwIPLocalNetMaskGet() );
+	return ( htonl(lwIPLocalNetMaskGet()) );
 }
 
 
@@ -112,24 +89,17 @@ bool Ethernet_Connected( void )
 // *****************************************************************************
 void Ethernet_ReConfig ( void )
 {
-ui32 ip = 0;
-ui32 subnet = 0;
-ui32 gateway = 0;
-
-	if((SystemConfig.flags & CONFIG_FLAG_STATICIP) == CONFIG_FLAG_STATICIP)
+	if ((SystemConfig.flags & CONFIG_FLAG_STATICIP) == CONFIG_FLAG_STATICIP)
 	{
-		// lwIPNetworkConfigChange flips the supplied ui32 we store it correctly
-		// So I either edit TI code or flip it before it does, wasteful but works for now
-		ip = htonl(SystemConfig.ulStaticIP);
-		subnet = htonl(SystemConfig.ulSubnetMask);
-		gateway = htonl(SystemConfig.ulGatewayIP);
-
-		lwIPNetworkConfigChange(ip, subnet, gateway, IPADDR_USE_STATIC);
+		lwIPNetworkConfigChange(SystemConfig.ulStaticIP, SystemConfig.ulSubnetMask, SystemConfig.ulGatewayIP, IPADDR_USE_STATIC);
 	}
 	else
 	{
 		lwIPNetworkConfigChange(0, 0, 0, IPADDR_USE_DHCP);
 	}
+
+	// Save the change
+	SysConfigSave();
 }
 
 //*****************************************************************************
@@ -159,12 +129,14 @@ void lwIPHostTimerHandler (void)
 	}
 
 	IpAddress = lwIPLocalIPAddrGet();
+	IpAddress = htonl(IpAddress);
 
 	if ((IpAddress) && (EthernetConnected))
 	{
-		if ((IpAddress & 0x000000FF) == 169 )
+		// does ip start with 169
+		if ((IpAddress & 0xFF000000) == 0xA9000000 )
 		{
-			// we have a 169. ip which means DHCP has failed
+			// This means DHCP has failed to get us an IP address
 			DhcpFail = true;
 		}
 		else

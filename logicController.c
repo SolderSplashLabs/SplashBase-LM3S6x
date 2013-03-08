@@ -742,7 +742,7 @@ ui32 param2 = LogicConditions[conditionNo].actionParam2;
 		break;
 
 		case L_ACTION_CONTROL_RELAY :
-			relayControl(param1, param2);
+			RelayControl(param1, param2);
 			//UARTprintf("Action : L_ACTION_CONTROL_RELAY\r\n");
 		break;
 

@@ -182,6 +182,9 @@ tConfigParameters SystemConfig;
 //*****************************************************************************
 #define CONFIG_FLAG_STATICIP    	0x80
 #define CONFIG_USE_CUSTOM_SNTP    	0x40
+#define CONFIG_USER_GPIO_INIT		0x20
+#define CONFIG_FOUR_RELAY_EN		0x10
+#define CONFIG_RGB_PWM_EN			0x08
 
 //*****************************************************************************
 //
@@ -215,15 +218,16 @@ tConfigParameters SystemConfig;
 //
 //*****************************************************************************
 extern tConfigParameters SystemConfig;
-extern tConfigParameters g_sWorkingDefaultParameters;
 
-extern const tConfigParameters *g_psDefaultParameters;
-extern const tConfigParameters *const g_psFactoryParameters;
-extern void SysConfigInit(void);
-extern void SysConfigFactoryDefault(void);
-extern void SysConfigLoad(void);
-extern void SysConfigSave(void);
-extern void ConfigWebInit(void);
-extern void ConfigUpdateIPAddress(void);
-extern void ConfigUpdateAllParameters(tBoolean bUpdateIP);
+
+void SysConfigInit(void);
+void SysConfigFactoryDefault(void);
+void SysConfigLoad(void);
+void SysConfigSave(void);
+
+void SysSetBaseName ( ui8 *buffer, ui8 len );
+void SysSetSntpAddress ( ui8 *buffer, ui8 len );
+void SysConfigRelayEnable ( void );
+void SysConfigRelayDisable ( void );
+
 

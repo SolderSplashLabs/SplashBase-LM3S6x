@@ -85,3 +85,73 @@ volatile ui16 confSize = 0;
     SysConfigLoad();
 }
 
+// *****************************************************************************
+//
+// SysSetBaseName - Set a new Base board name
+//
+// *****************************************************************************
+void SysSetBaseName ( ui8 *buffer, ui8 len )
+{
+	if (len > SPLASHBASE_NAME_LEN-1) len = SPLASHBASE_NAME_LEN-1;
+
+	strncpy((char *)SystemConfig.splashBaseName, buffer, len);
+	SystemConfig.splashBaseName[len] = 0;
+
+	// And the SolderSplash UDP Protocol
+	SSC_SetUnitName((ui8 *)SystemConfig.splashBaseName);
+
+	SysConfigSave();
+}
+
+// *****************************************************************************
+//
+// SysSetSntpAddress - Set a new Base board name
+//
+// *****************************************************************************
+void SysSetSntpAddress ( ui8 *buffer, ui8 len )
+{
+	if (len > SNTP_SERVER_LEN-1) len = SNTP_SERVER_LEN-1;
+
+	strncpy((char *)SystemConfig.sntpServerAddress, buffer, len);
+	SystemConfig.sntpServerAddress[len] = 0;
+
+	SysConfigSave();
+}
+
+// *****************************************************************************
+//
+// SysConfigRelayEnable - Enable Relay Control
+//
+// *****************************************************************************
+void SysConfigRelayEnable ( void )
+{
+	if ( SystemConfig.flags & CONFIG_FOUR_RELAY_EN )
+	{
+		// It already is!
+	}
+	else
+	{
+		SystemConfig.flags |= CONFIG_FOUR_RELAY_EN;
+		SysConfigSave();
+
+		RelayInit();
+	}
+}
+
+// *****************************************************************************
+//
+// SysConfigRelayDisable - Disable Relay Control
+//
+// *****************************************************************************
+void SysConfigRelayDisable ( void )
+{
+	if ( SystemConfig.flags & CONFIG_FOUR_RELAY_EN )
+	{
+		SystemConfig.flags &= ~CONFIG_FOUR_RELAY_EN;
+		SysConfigSave();
+	}
+	else
+	{
+		// Already disabled
+	}
+}

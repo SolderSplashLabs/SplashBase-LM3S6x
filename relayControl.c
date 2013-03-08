@@ -14,48 +14,35 @@
 #define RELAYCONTROL
 #include "SplashBaseHeaders.h"
 
-/*
-#include "inc/hw_ints.h"
-#include "inc/hw_memmap.h"
-//#include "inc/hw_nvic.h"
-#include "inc/hw_types.h"
-#include "driverlib/gpio.h"
-#include "driverlib/sysctl.h"
-#include "driverlib/systick.h"
-#include "inc/lm3s6432.h"
-#include "datatypes.h"
 
-#include "globals.h"
-
-#define RELAYCONTROL
-#include "relayControl.h"
-*/
-
-void relayInit( void )
+// *****************************************************************************
+//
+// RelayInit : Configure IO required to control the relays
+//
+// *****************************************************************************
+void RelayInit( void )
 {
 	volatile ui32 dummy;
 
 	// Allow relay control
 	RelayStatus = 1;
 	
-	/*
-	// Enable Portd    
-    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOD);
-
-    // Do a dummy read to insert a few cycles after enabling the peripheral.
-    dummy = SYSCTL_RCGC2_R;
-    dummy = SYSCTL_RCGC2_R;
-    */
-
     GPIOPinWrite(GPIO_PORTD_BASE, RELAY_OUT_BITS, 0);
 
     // Set the relay lines as outputs
     GPIOPinTypeGPIOOutput(GPIO_PORTD_BASE, RELAY_OUT_BITS);
     
-    relayControl( 0, RELAY_OUT_BITS );
+    UserGpio_AppSetMask(USER_GPIO_PORTD, RELAY_OUT_BITS);
+
+    RelayControl( 0, RELAY_OUT_BITS );
 }
 
-void relayControl( ui8 closedRelays, ui8 mask )
+// *****************************************************************************
+//
+// RelayControl : Control the supplied relay/s
+//
+// *****************************************************************************
+void RelayControl( ui8 closedRelays, ui8 mask )
 {
 	if ( mask & BIT0 )
 	{
