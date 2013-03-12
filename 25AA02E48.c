@@ -5,7 +5,7 @@
   ___) | (_) | | (_| |  __/ |   ___) | |_) | | (_| \__ \ | | |	| |__| (_| | |_) \__ \
  |____/ \___/|_|\__,_|\___|_|  |____/| .__/|_|\__,_|___/_| |_|	|_____\__,_|_.__/|___/
                                      |_|
- (C)SolderSplash Labs 2013 - www.soldersplash.co.uk - C. Matthews - R. Steel
+ (C)SolderSplash Labs Ltd 2013 - www.soldersplash.co.uk - C. Matthews - R. Steel
 
  Redistributions of source code must retain the above copyright notice
 
@@ -23,19 +23,6 @@
 
 #define _25AA02E48_
 #include "SplashBaseHeaders.h"
-
-/*
-#include "datatypes.h"				// SolderSplash Labs - Custom Data Types
-#include "inc/hw_memmap.h"			// Stellaris memory map macros
-#include "inc/hw_ssi.h"				// SSI Macros
-#include "inc/hw_types.h"			// TI HW macros
-#include "driverlib/ssi.h"			// SSI StellarisWare Lib
-#include "driverlib/gpio.h"			// GPIO StellarisWare Lib
-#include "driverlib/sysctl.h"		// System Control StellarisWare Lib
-
-#define _25AA02E48_
-#include "25AA02E48.h"
-*/
 
 //*****************************************************************************
 //

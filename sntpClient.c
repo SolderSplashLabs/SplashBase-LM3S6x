@@ -14,22 +14,6 @@ RFC5905 - Details the NTPv4 Protocol
 #include "SplashBaseHeaders.h"
 #include <string.h>
 
-/*
-#include "inc/hw_ints.h"
-#include "inc/hw_memmap.h"
-#include "inc/hw_types.h"
-#include "inc/hw_nvic.h"
-
-#include "lwiplib.h"				// lwip TCP/IP Stack
-#include "lwip/dns.h"
-
-#include "datatypes.h"
-#include "globals.h"
-
-#include "time.h"
-#include "sntpClient.h"
-*/
-
 struct udp_pcb *SntpPort;
 struct ip_addr SntpServerIpAddr;
 unsigned long SntpTimeStamp = 0;
@@ -108,12 +92,10 @@ void SntpServerFound (const char *name, struct ip_addr *ipaddr, void *arg)
 	}
 	else
 	{
-		// failed, fallback to ip?
-		SntpServerIpAddr.addr = inet_addr("89.238.66.126");
-		SntpSendPacket();
-
-		// Try DNS next time
+		// Try DNS again next time
 		SntpServerIpAddr.addr = 0;
+
+		// TODO : Log this
 	}
 }
 
@@ -127,7 +109,7 @@ void SntpGetTime( void )
 	// First resolve the DNS if needed ...
 	if (SntpServerIpAddr.addr == 0)
 	{
-		dns_gethostbyname(SystemConfig.sntpServerAddress, &SntpServerIpAddr, SntpServerFound, NULL);
+		dns_gethostbyname((const char*)SystemConfig.sntpServerAddress, &SntpServerIpAddr, SntpServerFound, NULL);
 	}
 	else
 	{

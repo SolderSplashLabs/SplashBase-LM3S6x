@@ -13,25 +13,10 @@
 
 #include "SplashBaseHeaders.h"
 
-/*
-#include "inc/hw_ints.h"
-#include "inc/hw_nvic.h"
-#include "inc/hw_memmap.h"
-#include "inc/hw_types.h"
-#include "driverlib/adc.h"
-#include "driverlib/gpio.h"
-#include "driverlib/sysctl.h"
-#include "driverlib/systick.h"
-
-#include "datatypes.h"
-
-#include "adcControl.h"
-*/
 
 #define ADC_MV_PER_CNT			2.932551
 #define ADC_MV_TEMP_ZERO		500
 #define ADC_MV_PER_DEG			19.5
-
 
 unsigned long AdcResults[4];
 
@@ -97,22 +82,12 @@ void AdcInit ( void )
 	// The ADC0 peripheral must be enabled for use.
 	//
 	SysCtlPeripheralEnable(SYSCTL_PERIPH_ADC0);
-
-	//
-	// For this example ADC0 is used with AIN0 on port E7.
-	// The actual port and pins used may be different on your part, consult
-	// the data sheet for more information.  GPIO port E needs to be enabled
-	// so these pins can be used.
-	// TODO: change this to whichever GPIO port you are using.
-	//
 	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOE);
 
-	//
-	// Select the analog ADC function for these pins.
-	// Consult the data sheet to see which functions are allocated per pin.
-	// TODO: change this to select the port/pin you are using.
-	//
 	GPIOPinTypeADC(GPIO_PORTE_BASE, GPIO_PIN_5 | GPIO_PIN_6 | GPIO_PIN_7);
+
+	// Stop user from using them
+	UserGpio_AppSetMask(USER_GPIO_PORTE, GPIO_PIN_5 | GPIO_PIN_6 | GPIO_PIN_7);
 
 	//
 	// Enable sample sequence 2 ( 4 steps ), triggered by the processor

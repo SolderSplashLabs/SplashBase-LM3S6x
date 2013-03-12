@@ -13,24 +13,6 @@
 #include "SplashBaseHeaders.h"
 #include "utils/ustdlib.h"
 
-/*
-#include "inc/hw_ints.h"
-#include "inc/hw_memmap.h"
-#include "inc/hw_nvic.h"
-#include "inc/hw_types.h"
-#include "driverlib/gpio.h"
-#include "driverlib/sysctl.h"
-#include "driverlib/systick.h"
-#include "driverlib/timer.h"
-#include "boards/dk-lm3s9d96/enet_ptpd/random.h"
-
-#include "datatypes.h"
-
-#include "pwmControl.h"
-
-#define COLOUR_MODES
-#include "colourModes.h"
-*/
 
 
 

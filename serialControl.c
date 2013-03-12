@@ -9,99 +9,13 @@
 
 */
 
+#define _SERIAL_CONTROL_
 #include "SplashBaseHeaders.h"
 #include <String.h>
-static const char * const g_pcHex = "0123456789abcdef";
 
 
 //*****************************************************************************
 //
-// Input buffer for the command line interpreter.
-//
-//*****************************************************************************
-static char g_cInput[200];
-
-// Max no of arguments per command
-#define CMDLINE_MAX_ARGS 5
-
-//*****************************************************************************
-//
-// Declaration for the callback functions that will implement the command line
-// functionality.  These functions get called by the command line interpreter
-// when the corresponding command is typed into the command line.
-//
-//*****************************************************************************
-extern int CMD_help (int argc, char **argv);
-extern int CMD_SetName (int argc, char **argv);
-extern int CMD_NotImplemented (int argc, char **argv);
-extern int CMD_Reboot (int argc, char **argv);
-extern int CMD_Date (int argc, char **argv);
-extern int CMD_Relay (int argc, char **argv);
-extern int CMD_Adcs (int argc, char **argv);
-extern int CMD_Factory (int argc, char **argv);
-extern int CMD_Uptime (int argc, char **argv);
-extern int CMD_ServoMove (int argc, char **argv);
-extern int CMD_Rgb (int argc, char **argv);
-extern int CMD_BridgeScan (int argc, char **argv);
-extern int CMD_BridgeList (int argc, char **argv);
-extern int CMD_rand (int argc, char **argv);
-extern int CMD_intensity (int argc, char **argv);
-extern int CMD_ipconfig (int argc, char **argv);
-extern int CMD_GetTemperature (int argc, char **argv);
-extern int CMD_GetLogic (int argc, char **argv);
-extern int CMD_GpioInit (int argc, char **argv);
-extern int CMD_Gpio (int argc, char **argv);
-extern int CMD_SelfTest (int argc, char **argv);
-extern int CMD_cosm (int argc, char **argv);
-
-
-// Serial Banner, this looks mangled but in putty it looks good!
-const char WELCOME_MSG[] = "\n  ____        _     _           ____        _           _	 _          _\n\
- / ___|  ___ | | __| | ___ _ __/ ___| _ __ | | __ _ ___| |__	| |    __ _| |__  ___ \n\
- \\___ \\ / _ \\| |/ _` |/ _ \\ '__\\___ \\| '_ \\| |/ _` / __| '_ \\	| |   / _` | '_ \\/ __| \n\
-  ___) | (_) | | (_| |  __/ |   ___) | |_) | | (_| \\__ \\ | | |	| |__| (_| | |_) \\__ \\ \n\
- |____/ \\___/|_|\\__,_|\\___|_|  |____/| .__/|_|\\__,_|___/_| |_|	|_____\\__,_|_.__/|___/ \n\
-                                     |_| \nSolderSplash Labs - SplashBase V";
-
-const char ACK_STRING[] = "Acknowledged\n";
-
-//*****************************************************************************
-//
-// Table of valid command strings, callback functions and help messages.
-//
-//*****************************************************************************
-tCmdLineEntry g_sCmdTable[] =
-{
-    {"help",     	CMD_help,      			" : Display list of commands" },
-    {"?",     		CMD_help,      			" : Display list of commands" },
-    {"setname",  	CMD_SetName,     		" : name - Set SplashBase name"},
-    {"ipconfig", 	CMD_ipconfig,  			" : Show network config"},
-    {"cosm", 		CMD_cosm,  				" : cosm control"},
-    {"date",      	CMD_Date,   			" : <update>, <offset> <set> - Display the date and time. optional update command to force an update via NTP, offset modifies the minutes offset on the clock to use"},
-    {"rgb",			CMD_Rgb,				" : <mode> <toprgb> <bottomrgb> - Mode 0-4, colours 32bit hex (html format)"},
-    {"reboot",		CMD_Reboot,	 			" : Reboot"},
-    //{"uptime",		CMD_Uptime,	 			" : Power up time"},
-    {"relay",		CMD_Relay,	 			" : optional:<relaynumber> <on/off>"},
-    {"getadcs",		CMD_Adcs,	 			" : return ADC values for each port"},
-    {"factorydefault",		CMD_Factory,	" : factory default settings"},
-    {"servomove",	CMD_ServoMove,			" : <servo> <position> - 8bit servo number (zero based) and position"},
-    {"bridgescan",	CMD_BridgeScan,			" : Scan for SPI bridges"},
-    {"bridgelist",	CMD_BridgeList,			" : List SPI bridges"},
-    {"dmxupdate",	CMD_NotImplemented,		" : offset value"},
-    {"gettemp", 	CMD_GetTemperature,		" : Retrieve Temperature"},
-    //{"getlogic",	CMD_GetLogic,			" : optional:<number> - List Logic Statements"},
-    {"gpioinit",	CMD_GpioInit,	 		" : <get>/<set> <portletter> <direction>/<port> <mask> <value> get or set port init"},
-    {"gpio",		CMD_Gpio,	 			" : <get>/<set> <portletter> <direction>/<port> <mask> <value> get port status or set dir/port value"},
-    {"selftest",	CMD_SelfTest,			" : Factory Test with test rig"},
-    { 0, 0, 0 }
-};
-
-
-const int NUM_CMD = sizeof(g_sCmdTable)/sizeof(tCmdLineEntry);
-
-bool SerialPrintBridgeScanResult = false;
-
-//*****************************************************************************
 // Serial_Task
 //
 //*****************************************************************************
@@ -175,10 +89,11 @@ static char first = true;
 }
 
 
-// --------------------------------------------------------------------------------------
-// SP_Init
-// Initalise the SplashPixel control lines, bus and framebuffer
-// --------------------------------------------------------------------------------------
+//*****************************************************************************
+//
+// Serial_Init - Configure the IO for serial use
+//
+//*****************************************************************************
 void Serial_Init ( void )
 {
 	if ( 0 == SERIAL_UART )
@@ -190,6 +105,9 @@ void Serial_Init ( void )
 		GPIOPinTypeUART(PIN_U0TX_PORT, PIN_U0TX_PIN);
 
 		UARTStdioInit(SERIAL_UART);
+
+		// Stop the user controlling these pins
+		UserGpio_AppSetMask(USER_GPIO_PORTA, PIN_U0RX_PIN | PIN_U0TX_PIN);
 	}
 	else if ( 1 == SERIAL_UART )
 	{
@@ -200,6 +118,35 @@ void Serial_Init ( void )
 		GPIOPinTypeUART(PIN_U1TX_PORT, PIN_U1TX_PIN);
 
 		UARTStdioInit(SERIAL_UART);
+
+		// Stop the user controlling these pins
+		UserGpio_AppSetMask(USER_GPIO_PORTD, PIN_U1RX_PIN | PIN_U1TX_PIN);
+	}
+}
+
+//*****************************************************************************
+//
+// Print the select GPIO port info
+//
+//*****************************************************************************
+void Serial_PrintSelectedGpioPort ( ui8 portNo )
+{
+bool result = false;
+ui32 portVal = 0;
+ui32 portDir = 0;
+
+	if ( UserGpioGet(portNo, &portVal) )
+	{
+		if ( UserGpioDirGet(portNo, &portDir) )
+		{
+			result = true;
+			UARTprintf("%u : Port(%c) : Dir : 0x%04X Pins : 0x%04X \n", portNo, GPIO_PORT_LETTERS[portNo], portDir, portVal);
+		}
+	}
+
+	if (! result )
+	{
+		UARTprintf("Error Invalid Port");
 	}
 }
 
@@ -290,8 +237,10 @@ ui32 tempIp = 0;
     {
     	if ( 'd' == argv[1][0] )
     	{
-    		// TODO : set to dynamic ip
+    		// set to dynamic ip
     		SystemConfig.flags &= ~CONFIG_FLAG_STATICIP;
+
+    		// Reconfigure the ethernet, which also saves it
     		Ethernet_ReConfig();
     		printConf = true;
     	}
@@ -413,7 +362,6 @@ CMD_Reboot (int argc, char **argv)
 // Command: date
 //
 // gets or updates the date/time
-// TODO : Currently assumes GMT
 //
 //*****************************************************************************
 int
@@ -864,7 +812,7 @@ ui8 portNo = 0;
 				portNo = ustrtoul(&argv[2][0], 0, 10);
 				if ( portNo < GPIO_PORT_TOTAL )
 				{
-					UARTprintf("Port : %u  Dir : %08X Pins : %08X \n", portNo, SystemConfig.UserGpioInit[portNo][0], SystemConfig.UserGpioInit[portNo][1]);
+					UARTprintf("Port : %u  Dir : 0x%04X Pins : 0x%04X \n", portNo, SystemConfig.UserGpioInit[portNo][0], SystemConfig.UserGpioInit[portNo][1]);
 				}
 				else
 				{
@@ -875,7 +823,7 @@ ui8 portNo = 0;
 			{
 				for (portNo=0; portNo<GPIO_PORT_TOTAL; portNo++)
 				{
-					UARTprintf("Port : %u  Dir : %08X Pins : %08X \n", portNo, SystemConfig.UserGpioInit[portNo][0], SystemConfig.UserGpioInit[portNo][1]);
+					UARTprintf("Port : %u  Dir : 0x%04X Pins : 0x%04X \n", portNo, SystemConfig.UserGpioInit[portNo][0], SystemConfig.UserGpioInit[portNo][1]);
 				}
 			}
 		}
@@ -905,7 +853,6 @@ int CMD_Gpio (int argc, char **argv)
 {
 ui8 portNo = 0;
 ui32 newVal = 0;
-ui32 direction = 0;
 ui32 mask = 0;
 
 	if ( argc > 1 )
@@ -916,23 +863,13 @@ ui32 mask = 0;
 			{
 				// Only want one
 				portNo = ustrtoul(&argv[2][0], 0, 10);
-				if ( UserGpioGet(portNo, &newVal) )
-				{
-					UserGpioDirGet(portNo, &direction);
-					UARTprintf("%u : Port(%c) : Dir : %08X Pins : %08X \n", portNo, GPIO_PORT_LETTERS[portNo], direction, newVal);
-				}
-				else
-				{
-					UARTprintf("Error \n");
-				}
+				Serial_PrintSelectedGpioPort( portNo );
 			}
 			else
 			{
 				for (portNo=0; portNo<GPIO_PORT_TOTAL; portNo++)
 				{
-					UserGpioGet(portNo, &newVal);
-					UserGpioDirGet(portNo, &direction);
-					UARTprintf("%u : Port(%c) : Dir : %08X Pins : %08X \n", portNo, GPIO_PORT_LETTERS[portNo], direction, newVal);
+					Serial_PrintSelectedGpioPort( portNo );
 				}
 			}
 		}
@@ -951,9 +888,7 @@ ui32 mask = 0;
 
 					// Read back the direction register and show the user
 					// There maybe protected direction pins that we could not change so we dont assume we did!
-					UserGpioGet(portNo, &newVal);
-					UserGpioDirGet(portNo, &direction);
-					UARTprintf("%u : Port(%c) : Dir : %08X Pins : %08X \n", portNo, GPIO_PORT_LETTERS[portNo], direction, newVal);
+					Serial_PrintSelectedGpioPort( portNo );
 
 				}
 				else if ( 'p' == argv[3][0] )
@@ -961,9 +896,7 @@ ui32 mask = 0;
 					// Were changing a port output
 					UserGpioSetOutputs( portNo, mask, newVal );
 
-					UserGpioGet(portNo, &newVal);
-					UserGpioDirGet(portNo, &direction);
-					UARTprintf("%u : Port(%c) : Dir : %08X Pins : %08X \n", portNo, GPIO_PORT_LETTERS[portNo], direction, newVal);
+					Serial_PrintSelectedGpioPort( portNo );
 				}
 			}
 		}

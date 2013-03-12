@@ -10,6 +10,7 @@
 */
 #include <string.h>
 #include "SplashBaseHeaders.h"
+#include "lwip/tcp.h"
 
 struct ip_addr CosmIpAddress;
 char CosmCommandBuffer[300];
@@ -51,7 +52,7 @@ void CosmGetIp ( void )
 	// resolve the DNS if needed ...
 	if ((CosmIpAddress.addr == 0) || (CosmIpAddress.addr == 0xFFFFFFFF))
 	{
-		if (ERR_OK == dns_gethostbyname(SystemConfig.cosmHost, &CosmIpAddress, CosmServerFound, NULL))
+		if (ERR_OK == dns_gethostbyname((const char*)SystemConfig.cosmHost, &CosmIpAddress, CosmServerFound, NULL))
 		{
 			// It was cached
 			CosmTest(1);

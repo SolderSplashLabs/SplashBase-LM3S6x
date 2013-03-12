@@ -94,7 +94,7 @@ void SysSetBaseName ( ui8 *buffer, ui8 len )
 {
 	if (len > SPLASHBASE_NAME_LEN-1) len = SPLASHBASE_NAME_LEN-1;
 
-	strncpy((char *)SystemConfig.splashBaseName, buffer, len);
+	ustrncpy((char *)SystemConfig.splashBaseName, (const char *)buffer, len);
 	SystemConfig.splashBaseName[len] = 0;
 
 	// And the SolderSplash UDP Protocol
@@ -112,7 +112,7 @@ void SysSetSntpAddress ( ui8 *buffer, ui8 len )
 {
 	if (len > SNTP_SERVER_LEN-1) len = SNTP_SERVER_LEN-1;
 
-	strncpy((char *)SystemConfig.sntpServerAddress, buffer, len);
+	ustrncpy((char *)SystemConfig.sntpServerAddress, (const char *)buffer, len);
 	SystemConfig.sntpServerAddress[len] = 0;
 
 	SysConfigSave();

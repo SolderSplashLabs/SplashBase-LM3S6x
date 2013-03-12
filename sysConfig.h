@@ -19,7 +19,29 @@
 #define COSM_URL_LEN					32
 #define SNTP_SERVER_LEN					32
 
-// Structure of configuration saved to flash
+
+// Bit masks for the SystemConfig.flags value
+#define CONFIG_FLAG_STATICIP    	0x80
+#define CONFIG_USE_CUSTOM_SNTP    	0x40
+#define CONFIG_USER_GPIO_INIT		0x20
+#define CONFIG_FOUR_RELAY_EN		0x10
+#define CONFIG_RGB_PWM_EN			0x08
+
+typedef struct
+{
+	ui8 StaticIp:1;
+	ui8 CustomSNTP:1;
+	ui8 UserGpioInit:1;
+	ui8 FourRelayEnable:1;
+	ui8 RgbPwmEnable:1;
+	ui8 Spare1:1;
+	ui8 Spare2:1;
+	ui8 Spare3:1;
+}
+SysConfigFlags;
+
+// SystemConfig Structure, used to hold all of the Non volatile configuration
+// Written to the end of the flash
 typedef struct
 {
 	// TI Flash library wear levels config writes to the range of flash used.
@@ -33,7 +55,8 @@ typedef struct
     ui8 version;
 
     // Misc Flags
-    ui8 flags;
+    //ui8 flags;
+    SysConfigFlags flags;
 
     // SplashBase Name
     ui8 splashBaseName[SPLASHBASE_NAME_LEN];
@@ -73,8 +96,8 @@ typedef struct
     ui32 UserGpioInit[15][2];
 
     // 20x28 = 560 Bytes
-    ui8 LogicConditionsBuffer[ 560 ];
-    //LOGIC_CONDITION LogicConditions[LOGIC_MAX_CONDITIONS];
+    //ui8 LogicConditionsBuffer[ 560 ];
+    LOGIC_CONDITION LogicConditionsBuffer[LOGIC_MAX_CONDITIONS];
 
     // HTTP Private/API key
     ui8 cosmPrivKey[COSM_API_KEY_LEN];
@@ -104,13 +127,13 @@ static const tConfigParameters CONFIG_FACTORY_DEFAULTS =
     (ui8)0,
 
     // flags
-    (ui8)0,
+    0,
 
     // SplashBase Name
-	{
+	//{
 		'S','p','l','a','s','h','B','a','s','e', 0 , 0 , 0 , 0 , 0 , 0,
-		 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0
-	},
+		 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0,
+	//},
 
     // Static IP address
     0x00000000,
@@ -180,19 +203,6 @@ static const tConfigParameters CONFIG_FACTORY_DEFAULTS =
 tConfigParameters SystemConfig;
 
 #endif
-
-//*****************************************************************************
-//
-//! If this flag is set in the ucFlags field of tConfigParameters, the module
-//! uses a static IP.  If not, DHCP and AutoIP are used to obtain an IP
-//! address.
-//
-//*****************************************************************************
-#define CONFIG_FLAG_STATICIP    	0x80
-#define CONFIG_USE_CUSTOM_SNTP    	0x40
-#define CONFIG_USER_GPIO_INIT		0x20
-#define CONFIG_FOUR_RELAY_EN		0x10
-#define CONFIG_RGB_PWM_EN			0x08
 
 //*****************************************************************************
 //

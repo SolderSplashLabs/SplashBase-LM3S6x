@@ -33,6 +33,8 @@
 #include "utils/flash_pb.h"
 
 #include "lwiplib.h"						// lwip
+#include "lwip/dns.h"
+#include "lwip/tcp.h"
 
 #include "datatypes.h"
 #include "globals.h"

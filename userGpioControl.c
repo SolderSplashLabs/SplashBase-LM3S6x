@@ -28,7 +28,8 @@ void UserGpioInit ( void )
 ui8 i = 0;
 ui32 mask = 0;
 
-	if ( SystemConfig.flags & CONFIG_USER_GPIO_INIT )
+	//if ( SystemConfig.flags & CONFIG_USER_GPIO_INIT )
+	if ( SystemConfig.flags.UserGpioInit )
 	{
 		for (i=0; i<GPIO_PORT_TOTAL; i++)
 		{

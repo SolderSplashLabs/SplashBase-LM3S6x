@@ -599,8 +599,7 @@ struct pbuf *nextP;
 		case SSC_RESET :
 			if (('k' == pucData[1]) && ('i' == pucData[2]) && ('c' == pucData[3]) && ('k' == pucData[4]))
 			{
-				// We have been told to reboot
-				// TODO : Do we need to do anything else?
+				// We have been told to reboot, pull the trigger
 				HWREG(NVIC_APINT) = (NVIC_APINT_VECTKEY | NVIC_APINT_SYSRESETREQ);
 			}
 		break;

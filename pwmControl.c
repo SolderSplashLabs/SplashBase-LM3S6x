@@ -65,6 +65,10 @@ void pwmOn( void )
 	GPIOPinTypeTimer(GPIO_PORTB_BASE, GPIO_PIN_0 | GPIO_PIN_1);
 	GPIOPinTypeTimer(GPIO_PORTA_BASE, GPIO_PIN_6);
 	
+	// Tell the UserIOmodule, so that control of these pins is blocked by the user
+	UserGpio_AppSetMask(USER_GPIO_PORTB, GPIO_PIN_0 | GPIO_PIN_1);
+	UserGpio_AppSetMask(USER_GPIO_PORTA, GPIO_PIN_6);
+
 	// Turn PWM on using current set values	
 	pwmSetFreq( PwmSettings.freq, 0x07 );
 	
@@ -91,6 +95,10 @@ void pwmOff( void )
 	GPIOPinTypeGPIOOutput(GPIO_PORTA_BASE, GPIO_PIN_6);
 	GPIOPinWrite(GPIO_PORTA_BASE, BIT6, 0);
 	
+	// Tell the UserIOmodule, so that control of these pins is allowed by the user
+	UserGpio_AppClrMask(USER_GPIO_PORTB, GPIO_PIN_0 | GPIO_PIN_1);
+	UserGpio_AppClrMask(USER_GPIO_PORTA, GPIO_PIN_6);
+
 	PwmStatus = 0;
 }
 

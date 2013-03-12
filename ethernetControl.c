@@ -188,6 +188,8 @@ void Ethernet_Init ( void )
 	//
 	GPIOPinTypeEthernetLED(GPIO_PORTF_BASE, GPIO_PIN_2 | GPIO_PIN_3);
 
+	UserGpio_AppSetMask( USER_GPIO_PORTF, GPIO_PIN_2 | GPIO_PIN_3);
+
 	//
 	// Set the link status based on the LED0 signal (which defaults to link
 	// status in the PHY).
