@@ -30,7 +30,7 @@
 
 #define ADC_MV_PER_CNT			2.932551
 #define ADC_MV_TEMP_ZERO		500
-#define ADC_MV_PER_DEG			10
+#define ADC_MV_PER_DEG			19.5
 
 
 unsigned long AdcResults[4];

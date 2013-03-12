@@ -10,7 +10,7 @@
 */
 
 #include "SplashBaseHeaders.h"
-
+#include <String.h>
 static const char * const g_pcHex = "0123456789abcdef";
 
 
@@ -52,6 +52,8 @@ extern int CMD_GetLogic (int argc, char **argv);
 extern int CMD_GpioInit (int argc, char **argv);
 extern int CMD_Gpio (int argc, char **argv);
 extern int CMD_SelfTest (int argc, char **argv);
+extern int CMD_cosm (int argc, char **argv);
+
 
 // Serial Banner, this looks mangled but in putty it looks good!
 const char WELCOME_MSG[] = "\n  ____        _     _           ____        _           _	 _          _\n\
@@ -74,6 +76,7 @@ tCmdLineEntry g_sCmdTable[] =
     {"?",     		CMD_help,      			" : Display list of commands" },
     {"setname",  	CMD_SetName,     		" : name - Set SplashBase name"},
     {"ipconfig", 	CMD_ipconfig,  			" : Show network config"},
+    {"cosm", 		CMD_cosm,  				" : cosm control"},
     {"date",      	CMD_Date,   			" : <update>, <offset> <set> - Display the date and time. optional update command to force an update via NTP, offset modifies the minutes offset on the clock to use"},
     {"rgb",			CMD_Rgb,				" : <mode> <toprgb> <bottomrgb> - Mode 0-4, colours 32bit hex (html format)"},
     {"reboot",		CMD_Reboot,	 			" : Reboot"},
@@ -978,6 +981,74 @@ ui32 mask = 0;
 int CMD_SelfTest (int argc, char **argv)
 {
 	SelfTest();
+
+	return (0);
+}
+
+//*****************************************************************************
+//
+// Command: CMD_SetPortDir
+//
+//
+//
+//*****************************************************************************
+int CMD_cosm (int argc, char **argv)
+{
+ui16 stringLen = 0;
+
+	if ( argc > 2 )
+	{
+		if (( 's' == argv[1][0] ) && ( 'k' == argv[1][3] ))
+		{
+			// setkey
+			stringLen = strlen( &argv[2][0] );
+			if ( stringLen < COSM_API_KEY_LEN-1 )
+			{
+				memcpy( &SystemConfig.cosmPrivKey[0], &argv[2][0], stringLen);
+				SystemConfig.cosmPrivKey[stringLen]=0;
+				SysConfigSave();
+			}
+		}
+		else if (( 's' == argv[1][0] ) && ( 'h' == argv[1][3] ))
+		{
+			// sethost
+			stringLen = strlen( &argv[2][0] );
+			if ( stringLen < COSM_HOST_LEN-1 )
+			{
+				memcpy( &SystemConfig.cosmHost[0], &argv[2][0], stringLen);
+				SystemConfig.cosmHost[stringLen] = 0;
+				CosmHostUpdated();
+				SysConfigSave();
+			}
+		}
+		else if (( 's' == argv[1][0] ) && ( 'u' == argv[1][3] ))
+		{
+			// seturl
+			stringLen = strlen( &argv[2][0] );
+			if ( stringLen < COSM_URL_LEN-1 )
+			{
+				memcpy( &SystemConfig.cosmUrl[0], &argv[2][0], stringLen);
+				SystemConfig.cosmUrl[stringLen] = 0;
+				SysConfigSave();
+			}
+		}
+
+		UARTprintf("Host : %s - URL : %s - Private Key : %s \n", SystemConfig.cosmHost, SystemConfig.cosmUrl, SystemConfig.cosmPrivKey);
+	}
+	else if ( argc > 1 )
+	{
+		if ( 'u' == argv[1][0] )
+		{
+			// update
+			CosmGetIp();
+		}
+
+		UARTprintf("COSM Update Triggered \n");
+	}
+	else
+	{
+		UARTprintf("Host : %s - URL : %s - Private Key : %s \n", SystemConfig.cosmHost, SystemConfig.cosmUrl, SystemConfig.cosmPrivKey);
+	}
 
 	return (0);
 }

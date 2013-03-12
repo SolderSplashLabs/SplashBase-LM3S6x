@@ -14,35 +14,6 @@
 #define _LOGIC_H_
 #include "SplashBaseHeaders.h"
 
-/*
-#include "inc/hw_ints.h"
-#include "inc/hw_memmap.h"
-#include "inc/hw_nvic.h"
-#include "inc/hw_types.h"
-#include "driverlib/gpio.h"
-#include "driverlib/sysctl.h"
-#include "driverlib/systick.h"
-#include "lwiplib.h"
-#include "utils/ustdlib.h"
-
-#include "datatypes.h"
-
-#include "config.h"
-
-#include "adcControl.h"
-#include "pwmControl.h"
-#include "relayControl.h"
-#include "ethernetControl.h"
-#include "time.h"
-#include "cosm.h"
-#include "userGpioControl.h"
-#include "solderBridge/servoSolderBridge.h"
-
-#define _LOGIC_H_
-#include "logicController.h"
-*/
-
-
 // TODO : tidy up
 //LOGIC_CONDITION LogicConditions[LOGIC_MAX_CONDITIONS];
 LOGIC_CONDITION *LogicConditions;

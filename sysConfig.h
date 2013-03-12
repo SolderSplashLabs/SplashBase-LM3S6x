@@ -14,7 +14,9 @@
 // Max String Lengths
 #define SPLASHBASE_NAME_LEN				24
 #define SPLASHBASE_RELAYNAME_LEN		12
-#define COSM_PRIV_KEY_LEN				64
+#define COSM_API_KEY_LEN				64
+#define COSM_HOST_LEN					32
+#define COSM_URL_LEN					32
 #define SNTP_SERVER_LEN					32
 
 // Structure of configuration saved to flash
@@ -67,9 +69,6 @@ typedef struct
     // SNTP ServerAddress
     ui8 sntpServerAddress[SNTP_SERVER_LEN];
 
-    // COSM Private key
-    ui8 cosmPrivKey[COSM_PRIV_KEY_LEN];
-
     // 120 bytes to hold the direction and pin high/low initialisation
     ui32 UserGpioInit[15][2];
 
@@ -77,8 +76,17 @@ typedef struct
     ui8 LogicConditionsBuffer[ 560 ];
     //LOGIC_CONDITION LogicConditions[LOGIC_MAX_CONDITIONS];
 
+    // HTTP Private/API key
+    ui8 cosmPrivKey[COSM_API_KEY_LEN];
+
+    // HTTP host
+    ui8 cosmHost[COSM_HOST_LEN];
+
+    // HTTP URL (without the host)
+    ui8 cosmUrl[COSM_URL_LEN];
+
     // Padding to ensure the whole structure is 1024 bytes long.
-    ui8 ucReserved2[137];
+    ui8 ucReserved2[73];
 }
 tConfigParameters;
 
