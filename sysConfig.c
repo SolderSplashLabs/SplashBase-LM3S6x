@@ -125,13 +125,15 @@ void SysSetSntpAddress ( ui8 *buffer, ui8 len )
 // *****************************************************************************
 void SysConfigRelayEnable ( void )
 {
-	if ( SystemConfig.flags & CONFIG_FOUR_RELAY_EN )
+	//if ( SystemConfig.flags & CONFIG_FOUR_RELAY_EN )
+	if ( SystemConfig.flags.FourRelayEnable )
 	{
 		// It already is!
 	}
 	else
 	{
-		SystemConfig.flags |= CONFIG_FOUR_RELAY_EN;
+		//SystemConfig.flags |= CONFIG_FOUR_RELAY_EN;
+		SystemConfig.flags.FourRelayEnable = true;
 		SysConfigSave();
 
 		RelayInit();
@@ -145,9 +147,11 @@ void SysConfigRelayEnable ( void )
 // *****************************************************************************
 void SysConfigRelayDisable ( void )
 {
-	if ( SystemConfig.flags & CONFIG_FOUR_RELAY_EN )
+	//if ( SystemConfig.flags & CONFIG_FOUR_RELAY_EN )
+	if ( SystemConfig.flags.FourRelayEnable )
 	{
-		SystemConfig.flags &= ~CONFIG_FOUR_RELAY_EN;
+		//SystemConfig.flags &= ~CONFIG_FOUR_RELAY_EN;
+		SystemConfig.flags.FourRelayEnable = false;
 		SysConfigSave();
 	}
 	else

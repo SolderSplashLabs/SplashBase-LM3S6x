@@ -27,16 +27,17 @@
 #define CONFIG_FOUR_RELAY_EN		0x10
 #define CONFIG_RGB_PWM_EN			0x08
 
+
 typedef struct
 {
-	ui8 StaticIp:1;
-	ui8 CustomSNTP:1;
-	ui8 UserGpioInit:1;
-	ui8 FourRelayEnable:1;
-	ui8 RgbPwmEnable:1;
-	ui8 Spare1:1;
-	ui8 Spare2:1;
 	ui8 Spare3:1;
+	ui8 Spare2:1;
+	ui8 Spare1:1;
+	ui8 RgbPwmEnable:1;
+	ui8 FourRelayEnable:1;
+	ui8 UserGpioInit:1;
+	ui8 CustomSNTP:1;
+	ui8 StaticIp:1;
 }
 SysConfigFlags;
 
@@ -118,31 +119,31 @@ tConfigParameters;
 static const tConfigParameters CONFIG_FACTORY_DEFAULTS =
 {
     // The sequence number
-    (ui8)0,
+    (ui8) 0,
 
     // Checksum
-    (ui8)0,
+    (ui8) 0,
 
     // version
-    (ui8)0,
+    (ui8) 0,
 
     // flags
-    0,
+    {0,0,0,1,1,0,0,0},
 
     // SplashBase Name
-	//{
+    {
 		'S','p','l','a','s','h','B','a','s','e', 0 , 0 , 0 , 0 , 0 , 0,
 		 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0,
-	//},
+	},
 
     // Static IP address
-    0x00000000,
+	(ui32)0x00000000,
 
     // Default gateway IP address (used only if static IP is in use).
-    0x00000000,
+	(ui32)0x00000000,
 
     // Subnet mask (used only if static IP is in use).
-    0xFFFFFF00,
+	(ui32)0xFFFFFF00,
 
     // Relay Names
     {
@@ -178,7 +179,7 @@ static const tConfigParameters CONFIG_FACTORY_DEFAULTS =
     (ui32)0x00000000,
 
     // Time offset
-    (ui32)0,
+    (si32)0,
 
     // SNTP Address 0.pool.ntp.org
 	{
@@ -186,18 +187,9 @@ static const tConfigParameters CONFIG_FACTORY_DEFAULTS =
 		 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ,
 	},
 
-	// SNTP Address 0.pool.ntp.org
-	{
-		 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ,
-		 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ,
-		 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ,
-		 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ,
-	},
-
     //
     // (compiler will pad to the full length)
     //
-
 };
 
 tConfigParameters SystemConfig;

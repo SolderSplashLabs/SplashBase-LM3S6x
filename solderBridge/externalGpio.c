@@ -9,7 +9,10 @@
 
  Redistributions of source code must retain the above copyright notice
 */
+#define _EXT_GPIO_
+#include "SplashBaseHeaders.h"
 
+/*
 #include "datatypes.h"
 #include "inc/hw_types.h"
 #include "inc/hw_ints.h"
@@ -22,6 +25,7 @@
 
 #define _EXT_GPIO_
 #include "externalGpio.h"
+*/
 
 // 32bit I/O Card, There are 8 possible addresses :
 // 0x20, 0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27
@@ -100,6 +104,8 @@ void ExtGpio_Init( void )
 	// Port B will already be powered in main, if not you must enable power to it before using it
 
     GPIOPinTypeI2C(GPIO_PORTB_BASE, GPIO_PIN_2 | GPIO_PIN_3);
+
+    UserGpio_AppSetMask(USER_GPIO_PORTB, GPIO_PIN_2 | GPIO_PIN_3);
 
     // Setup the I2C
     I2CMasterInitExpClk(I2C0_MASTER_BASE, SysCtlClockGet(), true);

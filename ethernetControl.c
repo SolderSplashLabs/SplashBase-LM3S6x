@@ -89,7 +89,8 @@ bool Ethernet_Connected( void )
 // *****************************************************************************
 void Ethernet_ReConfig ( void )
 {
-	if ((SystemConfig.flags & CONFIG_FLAG_STATICIP) == CONFIG_FLAG_STATICIP)
+	//if ((SystemConfig.flags & CONFIG_FLAG_STATICIP) == CONFIG_FLAG_STATICIP)
+	if (SystemConfig.flags.StaticIp)
 	{
 		lwIPNetworkConfigChange(SystemConfig.ulStaticIP, SystemConfig.ulSubnetMask, SystemConfig.ulGatewayIP, IPADDR_USE_STATIC);
 	}
@@ -198,12 +199,20 @@ void Ethernet_Init ( void )
 
 	// Init the lwip stack
 
+	/*
 	lwIPInit((const unsigned char *)macAddr, SystemConfig.ulStaticIP, SystemConfig.ulSubnetMask,
 	             SystemConfig.ulGatewayIP, ((SystemConfig.flags &
 	             CONFIG_FLAG_STATICIP) ? IPADDR_USE_STATIC : IPADDR_USE_DHCP));
+	*/
 
-
-	//lwIPInit((const unsigned char*)macAddr, 0, 0, 0, IPADDR_USE_DHCP);
+	if ( SystemConfig.flags.StaticIp )
+	{
+		lwIPInit((const unsigned char *)macAddr, SystemConfig.ulStaticIP, SystemConfig.ulSubnetMask, SystemConfig.ulGatewayIP, IPADDR_USE_STATIC);
+	}
+	else
+	{
+		lwIPInit((const unsigned char*)macAddr, 0, 0, 0, IPADDR_USE_DHCP);
+	}
 
 	SntpInit();
 }

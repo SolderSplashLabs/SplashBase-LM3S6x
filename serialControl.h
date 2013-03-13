@@ -28,6 +28,8 @@
 
 void Serial_Task ( void );
 void Serial_Init ( void );
+void Serial_PrintGpioDetails ( ui8 portNo );
+void Serial_PrintBridgeList ( void );
 
 // Functions called by the command processor
 extern int CMD_help (int argc, char **argv);
@@ -77,25 +79,24 @@ tCmdLineEntry g_sCmdTable[] =
 {
     {"help",     	CMD_help,      			" : Display list of commands" },
     {"?",     		CMD_help,      			" : Display list of commands" },
+    {"config",		CMD_Factory,			" : <save>/<factorydefault> save or factory default settings"},
     {"setname",  	CMD_SetName,     		" : name - Set SplashBase name"},
-    {"ipconfig", 	CMD_ipconfig,  			" : Show network config"},
-    {"cosm", 		CMD_cosm,  				" : cosm control"},
-    {"date",      	CMD_Date,   			" : <update>, <offset> <set> - Display the date and time. optional update command to force an update via NTP, offset modifies the minutes offset on the clock to use"},
+    {"ipconfig", 	CMD_ipconfig,  			" : <dynamic>/<static> <ip> <mask> <gateway> Show/Set Network Config"},
+    {"cosm", 		CMD_cosm,  				" : <setkey>/<sethost>/<seturi> COSM/HTTP Put Control"},
+    {"date",      	CMD_Date,   			" : <update>, <offset> <set> - Display/update date time via NTP, apply offset in minutes offset to the clock"},
     {"rgb",			CMD_Rgb,				" : <mode> <toprgb> <bottomrgb> - Mode 0-4, colours 32bit hex (html format)"},
     {"reboot",		CMD_Reboot,	 			" : Reboot"},
-    //{"uptime",		CMD_Uptime,	 			" : Power up time"},
-    {"relay",		CMD_Relay,	 			" : optional:<relaynumber> <on/off>"},
+    {"uptime",		CMD_Uptime,	 			" : Power up time"},
+    {"relay",		CMD_Relay,	 			" : <enabled>/<disabled> / optional:<relaynumber> <on/off>"},
     {"getadcs",		CMD_Adcs,	 			" : return ADC values for each port"},
-    {"factorydefault",		CMD_Factory,	" : factory default settings"},
     {"servomove",	CMD_ServoMove,			" : <servo> <position> - 8bit servo number (zero based) and position"},
-    {"bridgescan",	CMD_BridgeScan,			" : Scan for SPI bridges"},
-    {"bridgelist",	CMD_BridgeList,			" : List SPI bridges"},
+    {"bridge",		CMD_BridgeScan,			" : <scan> List Connected SolderBridges"},
     {"dmxupdate",	CMD_NotImplemented,		" : offset value"},
     {"gettemp", 	CMD_GetTemperature,		" : Retrieve Temperature"},
-    //{"getlogic",	CMD_GetLogic,			" : optional:<number> - List Logic Statements"},
-    {"gpioinit",	CMD_GpioInit,	 		" : <get>/<set> <portletter> <direction>/<port> <mask> <value> get or set port init"},
-    {"gpio",		CMD_Gpio,	 			" : <get>/<set> <portletter> <direction>/<port> <mask> <value> get port status or set dir/port value"},
+    {"gpioinit",	CMD_GpioInit,	 		" : <disable>/<enable> / <get>/<set> <portno> <direction>/<port> <mask> <value> get or set port init"},
+    {"gpio",		CMD_Gpio,	 			" : <get>/<set> <portno> <direction>/<port> <mask> <value> get port status or set dir/port value"},
     {"selftest",	CMD_SelfTest,			" : Factory Test with test rig"},
+    //{"getlogic",	CMD_GetLogic,			" : optional:<number> - List Logic Statements"},
     { 0, 0, 0 }
 };
 

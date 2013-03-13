@@ -125,7 +125,7 @@ void CosmTest(unsigned long data)
 	}
 }
 
-void CosmOnline ( void *arg, struct tcp_pcb *pcb, err_t err )
+err_t CosmOnline ( void *arg, struct tcp_pcb *pcb, err_t err )
 {
 	// We have a connection, come in over, do you read me!
 	LWIP_UNUSED_ARG(arg);
@@ -146,6 +146,8 @@ void CosmOnline ( void *arg, struct tcp_pcb *pcb, err_t err )
 
 		//tcp_recv(pcb, server_recv);
 	}
+
+	return ERR_OK;
 }
 
 err_t CosmDataHasGone (void *arg, struct tcp_pcb *pcb, u16_t len)

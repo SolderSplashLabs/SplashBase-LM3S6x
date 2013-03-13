@@ -27,7 +27,7 @@ static char first = true;
 	if (SerialPrintBridgeScanResult)
 	{
 		// Print the bridgelist
-		CMD_BridgeList(0,0);
+		Serial_PrintBridgeList();
 
 		SerialPrintBridgeScanResult = false;
 
@@ -129,7 +129,7 @@ void Serial_Init ( void )
 // Print the select GPIO port info
 //
 //*****************************************************************************
-void Serial_PrintSelectedGpioPort ( ui8 portNo )
+void Serial_PrintGpioDetails ( ui8 portNo )
 {
 bool result = false;
 ui32 portVal = 0;
@@ -152,6 +152,31 @@ ui32 portDir = 0;
 
 //*****************************************************************************
 //
+// Serial_PrintBridgeList
+//
+// Lists Connected SolderBridges
+//
+//*****************************************************************************
+void Serial_PrintBridgeList ( void )
+{
+ui8 i = 0;
+
+	for ( i=0; i<5; i++ )
+	{
+		UARTprintf("CS%u : %s \n", i, SB_GetBridgeName(i));
+	}
+
+	for ( i=0; i<8; i++ )
+	{
+		if ( IoExpanders.pcaAvailible & (0x01<<i) )
+		{
+			UARTprintf("I/O Expander, i2c Address : 0x%02X \n", (0x20+i));
+		}
+	}
+}
+
+//*****************************************************************************
+//
 // Command: setname
 //
 // Reboots the splashbase
@@ -162,6 +187,10 @@ int CMD_SetName (int argc, char **argv)
 	if (argc > 1)
 	{
 		SysSetBaseName( (ui8 *)&argv[1][0], strlen(&argv[1][0]));
+	}
+	else
+	{
+		UARTprintf( "%s \n", (const char *)SystemConfig.splashBaseName );
 	}
 
 	return (0);
@@ -238,7 +267,8 @@ ui32 tempIp = 0;
     	if ( 'd' == argv[1][0] )
     	{
     		// set to dynamic ip
-    		SystemConfig.flags &= ~CONFIG_FLAG_STATICIP;
+    		//SystemConfig.flags &= ~CONFIG_FLAG_STATICIP;
+    		SystemConfig.flags.StaticIp = false;
 
     		// Reconfigure the ethernet, which also saves it
     		Ethernet_ReConfig();
@@ -286,13 +316,15 @@ ui32 tempIp = 0;
 				if (printConf)
 				{
 					// Everything accepted
-					SystemConfig.flags |= CONFIG_FLAG_STATICIP;
+					//SystemConfig.flags |= CONFIG_FLAG_STATICIP;
+					SystemConfig.flags.StaticIp = true;
 					Ethernet_ReConfig();
 				}
 				else
 				{
 					// Error revert to dynamic
-					SystemConfig.flags &= ~CONFIG_FLAG_STATICIP;
+					//SystemConfig.flags &= ~CONFIG_FLAG_STATICIP;
+					SystemConfig.flags.StaticIp = false;
 				}
 
 			}
@@ -306,7 +338,8 @@ ui32 tempIp = 0;
 
     if ( printConf )
     {
-		if ( SystemConfig.flags & CONFIG_FLAG_STATICIP )
+		//if ( SystemConfig.flags & CONFIG_FLAG_STATICIP )
+    	if ( SystemConfig.flags.StaticIp )
 		{
 			UARTprintf("Static IP\n");
 		}
@@ -504,49 +537,19 @@ int CMD_BridgeScan (int argc, char **argv)
 	(void) argc;
 	(void) argv;
 
-	/*
-	if ( SolderBridge_StartScan() )
+	if ( argc > 1 )
 	{
-		UARTprintf("Scanning SPI for Bridges\n");
-	}
-	else
-	{
-		UARTprintf("Busy\n");
-	}
-	*/
-
-	SolderBridge_StartScan();
-	ExtGpio_Scan();
-
-	SerialPrintBridgeScanResult = true;
-
-	return (0);
-}
-
-
-//*****************************************************************************
-//
-// Command: bridgelist
-//
-// Lists SPI Bridges on the SPI bus
-//
-//*****************************************************************************
-int CMD_BridgeList (int argc, char **argv)
-{
-ui8 i = 0;
-
-	for ( i=0; i<5; i++ )
-	{
-		UARTprintf("CS%u : %s \n", i, SB_GetBridgeName(i));
-	}
-
-	for ( i=0; i<8; i++ )
-	{
-		if ( IoExpanders.pcaAvailible & (0x01<<i) )
+		// scan
+		if ( 's' == argv[1][0] )
 		{
-			UARTprintf("I/O Expander, i2c Address : 0x%02X \n", (0x20+i));
+			// Kick off the scan. On SPI and I2C
+			SolderBridge_StartScan();
+			ExtGpio_Scan();
 		}
 	}
+
+	// Next entry to the serial module will print out the bridge list
+	SerialPrintBridgeScanResult = true;
 
 	return (0);
 }
@@ -579,9 +582,25 @@ CMD_Adcs (int argc, char **argv)
 //*****************************************************************************
 int CMD_Factory (int argc, char **argv)
 {
-	SysConfigFactoryDefault();
-	SysConfigSave();
-	UARTprintf("Reverted To Factory Defaults\n");
+	if ( argc > 1 )
+	{
+		// factory
+		if ( 'f' == argv[1][0] )
+		{
+			SysConfigFactoryDefault();
+			SysConfigSave();
+			UARTprintf("Reverted To Factory Defaults\n");
+		}
+		else if ( 's' == argv[1][0] )
+		{
+			SysConfigSave();
+			UARTprintf("System Config Saved\n");
+		}
+	}
+	else
+	{
+		// TODO : Print config, how much?
+	}
 
 	return (0);
 }
@@ -801,6 +820,8 @@ ui8 port = 0;
 int CMD_GpioInit (int argc, char **argv)
 {
 ui8 portNo = 0;
+ui32 mask = 0;
+ui32 newVal = 0;
 
 	if ( argc > 1 )
 	{
@@ -812,7 +833,7 @@ ui8 portNo = 0;
 				portNo = ustrtoul(&argv[2][0], 0, 10);
 				if ( portNo < GPIO_PORT_TOTAL )
 				{
-					UARTprintf("Port : %u  Dir : 0x%04X Pins : 0x%04X \n", portNo, SystemConfig.UserGpioInit[portNo][0], SystemConfig.UserGpioInit[portNo][1]);
+					UARTprintf("%u : Port(%c) : Dir : 0x%04X Pins : 0x%04X \n", portNo, GPIO_PORT_LETTERS[portNo], SystemConfig.UserGpioInit[portNo][0], SystemConfig.UserGpioInit[portNo][1]);
 				}
 				else
 				{
@@ -823,20 +844,55 @@ ui8 portNo = 0;
 			{
 				for (portNo=0; portNo<GPIO_PORT_TOTAL; portNo++)
 				{
-					UARTprintf("Port : %u  Dir : 0x%04X Pins : 0x%04X \n", portNo, SystemConfig.UserGpioInit[portNo][0], SystemConfig.UserGpioInit[portNo][1]);
+					UARTprintf("%u : Port(%c) : Dir : 0x%04X Pins : 0x%04X \n", portNo, GPIO_PORT_LETTERS[portNo], SystemConfig.UserGpioInit[portNo][0], SystemConfig.UserGpioInit[portNo][1]);
 				}
 			}
 		}
 		else if ( 's' == argv[1][0] )
 		{
+			if ( argc > 5 )
+			{
+				portNo = ustrtoul(argv[2], 0, 10);
+				mask = htoi(argv[4]);
+				newVal = htoi(argv[5]);
 
+				// "direction"
+				if ( 'd' == argv[3][0] )
+				{
+					// We are changing a GPIO direction
+					// TODO : Think some more about this ...
+					newVal = mask & newVal;
+					SystemConfig.UserGpioInit[portNo][0] = newVal;
+
+					// Echo result
+					UARTprintf("%u : Port(%c) : Dir : 0x%04X Pins : 0x%04X \n", portNo, GPIO_PORT_LETTERS[portNo], SystemConfig.UserGpioInit[portNo][0], SystemConfig.UserGpioInit[portNo][1]);
+
+				}
+				// "port"
+				else if ( 'p' == argv[3][0] )
+				{
+					// Were changing a port output
+					newVal = mask & newVal;
+					SystemConfig.UserGpioInit[portNo][1] = newVal;
+
+					// Echo result
+					UARTprintf("%u : Port(%c) : Dir : 0x%04X Pins : 0x%04X \n", portNo, GPIO_PORT_LETTERS[portNo], SystemConfig.UserGpioInit[portNo][0], SystemConfig.UserGpioInit[portNo][1]);
+				}
+			}
 		}
-		else if ( 'c' == argv[1][0] )
+		else if ( 'd' == argv[1][0] )
 		{
-			// Clear the GPIO init
-			SystemConfig.flags &= ~CONFIG_USER_GPIO_INIT;
+			// "disable" the GPIO init
+			SystemConfig.flags.UserGpioInit = false;
 			SysConfigSave();
 			UARTprintf("User GPIO Initialisation Disabled\n");
+		}
+		else if ( 'e' == argv[1][0] )
+		{
+			// "enable" the GPIO init
+			SystemConfig.flags.UserGpioInit = true;
+			SysConfigSave();
+			UARTprintf("User GPIO Initialisation Enabled\n");
 		}
 	}
 	return (0);
@@ -863,13 +919,14 @@ ui32 mask = 0;
 			{
 				// Only want one
 				portNo = ustrtoul(&argv[2][0], 0, 10);
-				Serial_PrintSelectedGpioPort( portNo );
+				Serial_PrintGpioDetails( portNo );
 			}
 			else
 			{
+				// List them all
 				for (portNo=0; portNo<GPIO_PORT_TOTAL; portNo++)
 				{
-					Serial_PrintSelectedGpioPort( portNo );
+					Serial_PrintGpioDetails( portNo );
 				}
 			}
 		}
@@ -881,6 +938,7 @@ ui32 mask = 0;
 				mask = htoi(argv[4]);
 				newVal = htoi(argv[5]);
 
+				// "direction"
 				if ( 'd' == argv[3][0] )
 				{
 					// We are changing a GPIO direction
@@ -888,15 +946,16 @@ ui32 mask = 0;
 
 					// Read back the direction register and show the user
 					// There maybe protected direction pins that we could not change so we dont assume we did!
-					Serial_PrintSelectedGpioPort( portNo );
+					Serial_PrintGpioDetails( portNo );
 
 				}
+				// "port"
 				else if ( 'p' == argv[3][0] )
 				{
 					// Were changing a port output
 					UserGpioSetOutputs( portNo, mask, newVal );
 
-					Serial_PrintSelectedGpioPort( portNo );
+					Serial_PrintGpioDetails( portNo );
 				}
 			}
 		}
@@ -906,9 +965,7 @@ ui32 mask = 0;
 
 //*****************************************************************************
 //
-// Command: CMD_SetPortDir
-//
-//
+// Command: CMD_SelfTest
 //
 //*****************************************************************************
 int CMD_SelfTest (int argc, char **argv)
@@ -920,9 +977,7 @@ int CMD_SelfTest (int argc, char **argv)
 
 //*****************************************************************************
 //
-// Command: CMD_SetPortDir
-//
-//
+// Command: CMD_cosm
 //
 //*****************************************************************************
 int CMD_cosm (int argc, char **argv)
@@ -933,7 +988,7 @@ ui16 stringLen = 0;
 	{
 		if (( 's' == argv[1][0] ) && ( 'k' == argv[1][3] ))
 		{
-			// setkey
+			// "setkey"
 			stringLen = strlen( &argv[2][0] );
 			if ( stringLen < COSM_API_KEY_LEN-1 )
 			{
@@ -944,7 +999,7 @@ ui16 stringLen = 0;
 		}
 		else if (( 's' == argv[1][0] ) && ( 'h' == argv[1][3] ))
 		{
-			// sethost
+			// "sethost"
 			stringLen = strlen( &argv[2][0] );
 			if ( stringLen < COSM_HOST_LEN-1 )
 			{
@@ -956,7 +1011,7 @@ ui16 stringLen = 0;
 		}
 		else if (( 's' == argv[1][0] ) && ( 'u' == argv[1][3] ))
 		{
-			// seturl
+			// "seturi"
 			stringLen = strlen( &argv[2][0] );
 			if ( stringLen < COSM_URL_LEN-1 )
 			{
@@ -966,13 +1021,13 @@ ui16 stringLen = 0;
 			}
 		}
 
-		UARTprintf("Host : %s - URL : %s - Private Key : %s \n", SystemConfig.cosmHost, SystemConfig.cosmUrl, SystemConfig.cosmPrivKey);
+		UARTprintf("Host : %s - URI : %s - Private Key : %s \n", SystemConfig.cosmHost, SystemConfig.cosmUrl, SystemConfig.cosmPrivKey);
 	}
 	else if ( argc > 1 )
 	{
 		if ( 'u' == argv[1][0] )
 		{
-			// update
+			// "update"
 			CosmGetIp();
 		}
 
@@ -980,7 +1035,7 @@ ui16 stringLen = 0;
 	}
 	else
 	{
-		UARTprintf("Host : %s - URL : %s - Private Key : %s \n", SystemConfig.cosmHost, SystemConfig.cosmUrl, SystemConfig.cosmPrivKey);
+		UARTprintf("Host : %s - URI : %s - Private Key : %s \n", SystemConfig.cosmHost, SystemConfig.cosmUrl, SystemConfig.cosmPrivKey);
 	}
 
 	return (0);

@@ -10,6 +10,10 @@
  Redistributions of source code must retain the above copyright notice
 */
 
+#include "SplashBaseHeaders.h"
+
+/*
+
 #include "datatypes.h"
 #include "inc/hw_types.h"
 #include "inc/hw_ints.h"
@@ -20,6 +24,7 @@
 
 #include "servoSolderBridge.h"
 #include "solderBridgeSpi.h"
+*/
 
 bool SB_Scanning = false;
 
@@ -376,6 +381,12 @@ void SB_Init ( void )
 	SSIConfigSetExpClk(SSI0_BASE, SysCtlClockGet(), SSI_FRF_MOTO_MODE_0, SSI_MODE_MASTER, 5000000, 16);
 
 	SSIEnable(SSI0_BASE);
+
+	// SPI Lines
+	UserGpio_AppSetMask(USER_GPIO_PORTA, GPIO_PIN_5 | GPIO_PIN_4 | GPIO_PIN_2);
+
+	// CS Lines
+	UserGpio_AppSetMask(USER_GPIO_PORTE, GPIO_PIN_0 | GPIO_PIN_1 | GPIO_PIN_2 | GPIO_PIN_3 | GPIO_PIN_4);
 
 	// Empty the fifo incase there is any unprocessed received data, we don't want/need it
 	while(SSIDataGetNonBlocking(SSI0_BASE, &tempLong))
