@@ -270,8 +270,12 @@ ui32 tempIp = 0;
     		//SystemConfig.flags &= ~CONFIG_FLAG_STATICIP;
     		SystemConfig.flags.StaticIp = false;
 
-    		// Reconfigure the ethernet, which also saves it
+    		// Reconfigure the ethernet
     		Ethernet_ReConfig();
+
+    		// Save the change
+    		SysConfigSave();
+
     		printConf = true;
     	}
     	else if ( 's' == argv[1][0] )
@@ -319,6 +323,9 @@ ui32 tempIp = 0;
 					//SystemConfig.flags |= CONFIG_FLAG_STATICIP;
 					SystemConfig.flags.StaticIp = true;
 					Ethernet_ReConfig();
+
+					// Save the change
+					SysConfigSave();
 				}
 				else
 				{
@@ -739,6 +746,7 @@ ui8 i = 0;
 
 	UARTprintf("\n");
 
+	/*
 	for ( i=0; i<10; i++ )
 	{
 		if ( LogicConditions[i].active )
@@ -753,6 +761,7 @@ ui8 i = 0;
 			UARTprintf("THEN ( %s ) \n", LogicGetActionStr(i));
 		}
 	}
+	 */
 
 	return (0);
 }

@@ -45,11 +45,15 @@ ui8 i = 0;
 		ulocaltime( Time_StampNow(SystemConfig.timeOffset), &currentTime );
 		LogicCapturePortData();
 
+		// TODO : Remove
+		LogicActions.actionParam1[0] ++;
+		LogicConditionsTemp.condParam1[0] ++;
+
 		networkConnected = Ethernet_Connected();
 
 		for (i=0; i<LOGIC_MAX_CONDITIONS;i++)
 		{
-			if ( LogicConditions[i].active )
+			if ( L_EVENT_INVALID != LogicConditions[i].eventType )
 			{
 				// has the first event occurred?
 				if ( LogicProcessCondition ( i, false ) )
@@ -596,16 +600,7 @@ volatile ui32 param2 = LogicConditions[ conditionNo ].eventParam2;
 			result = true;
 		}
 	}
-/*
-	if ( LogicGpioData[LogicConditions[ conditionNo ].eventParam1] & LogicConditions[ conditionNo ].eventParam2  )
-	{
-		result = true;
-	}
-	else
-	{
-		result = false;
-	}
-*/
+
 	return( result );
 }
 
@@ -632,17 +627,6 @@ if ( param1 < GPIO_PORT_TOTAL )
 			// A bit has been pulled high
 		}
 	}
-
-/*
-	if ( LogicGpioData[LogicConditions[ conditionNo ].eventParam1] & LogicConditions[ conditionNo ].eventParam2  )
-	{
-		result = false;
-	}
-	else
-	{
-		result = true;
-	}
-	*/
 
 	return( result );
 }
@@ -814,7 +798,6 @@ void LogicInsertNewCondition (ui8 position, ui8 *newCondition )
 
 		memcpy(&(LogicConditions[position].eventParam1), newCondition, 24);
 
-		LogicConditions[position].active = true;
 		LogicConditions[position].actioned = false;
 
 		LogicCondInSync = false;

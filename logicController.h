@@ -38,6 +38,8 @@ typedef enum LOGIC_EVENT_TYPE
 	L_EVENT_TIME_AFTER,
 	L_EVENT_TIME_BEFORE,
 	L_EVENT_NET_MSG,
+	L_EVENT_GPIO_HIGH,
+	L_EVENT_GPIO_LOW,
 	L_EVENT_MAX
 } LOGIC_EVENT_TYPE;
 
@@ -63,13 +65,14 @@ typedef enum LOGIC_ACTION_TYPE
 
 // Note : Add remote control another splashbase option, set/clear relay? set output?
 
+// 28 bytes per. 560 total
 typedef struct LOGIC_CONDITION
 {
 	LOGIC_EVENT_TYPE eventType;			// This event has to occur ( using the 2 parameters ) before the action is taken
 	LOGIC_EVENT_TYPE andEventType;		// if this event is set to something other than Invalid, this condition must also be satisfied before executing the action
 	LOGIC_ACTION_TYPE actionType;
 
-	ui8 active:1;					// This condition is active
+	ui8 spare2:1;
 	ui8 actioned:1;					// Condition has been action, clear event condition is no longer true
 	ui8 spare:6;
 
@@ -82,32 +85,13 @@ typedef struct LOGIC_CONDITION
 
 } LOGIC_CONDITION;
 
-/*
-typedef struct LOGIC_ACTION
-{
-	LOGIC_ACTION_TYPE actionType;
-	ui8 spare[3];						// Spares to indicate structure packing
-	ui32 actionParam1;
-	ui32 actionParam2;
-};
-*/
-
-// NOTE : Theres a hole in the structure = wasted RAM
-typedef struct LOGIC_ACTIONS
-{
-	LOGIC_ACTION_TYPE actionType[16];
-	ui32 actionParam1[16];
-	ui32 actionParam2[16];
-} LOGIC_ACTIONS;
-
 #ifdef _LOGIC_H_
-
-
-volatile LOGIC_ACTIONS LogicActions;
 
 // a cache of the GPIO Ports, that are processed as a single snapshot
 ui32 LogicGpioData[ GPIO_PORT_TOTAL ];
 ui32 LogicGpioDataPrev[ GPIO_PORT_TOTAL ];
+
+// TODO : ADC above and below will constantly trigger how do you use them
 
 const char *LOGIC_EVENT_TYPE_NAMES[L_EVENT_MAX] = 	{	"None",
 		"GPIO RAISING",
@@ -130,7 +114,10 @@ const char *LOGIC_EVENT_TYPE_NAMES[L_EVENT_MAX] = 	{	"None",
 		"DATE BEFORE",
 		"TIME AFTER",
 		"TIME BEFORE",
-		"NET MSG" };
+		"NET MSG",
+		"GPIO_HIGH",
+		"GPIO_LOW",
+};
 
 const char *LOGIC_ACTION_TYPE_NAMES[L_ACTION_MAX] = {	"None",
 		"GPIO HIGH",

@@ -30,9 +30,9 @@
 
 typedef struct
 {
-	ui8 Spare3:1;
 	ui8 Spare2:1;
 	ui8 Spare1:1;
+	ui8 LogicEnabled:1;
 	ui8 RgbPwmEnable:1;
 	ui8 FourRelayEnable:1;
 	ui8 UserGpioInit:1;
@@ -128,7 +128,7 @@ static const tConfigParameters CONFIG_FACTORY_DEFAULTS =
     (ui8) 0,
 
     // flags
-    {0,0,0,1,1,0,0,0},
+    {0,0,0,1,1,1,0,0},
 
     // SplashBase Name
     {

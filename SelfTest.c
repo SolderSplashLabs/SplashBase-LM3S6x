@@ -74,13 +74,13 @@ bool SelfTestPair ( ui32 port1, ui32 port1Bit, ui32 port2, ui32 port2Bit, TEST_F
 {
 bool result = false;
 ui8 i = 0;
-
+	// Output low
 	GPIOPinWrite(port1, port1Bit, 0);
 	GPIOPinTypeGPIOOutput(port1, port1Bit);
+	GPIOPinTypeGPIOInput(port2, port2Bit);
+	GPIOPinWrite(port1, port1Bit, 0);
 
 	for (i=0; i<100; i++);
-
-	GPIOPinTypeGPIOInput(port2, port2Bit);
 
 	if ( GPIOPinRead(port2, port2Bit) )
 	{
@@ -93,6 +93,7 @@ ui8 i = 0;
 		result = true;
 	}
 
+	// Output High
 	GPIOPinWrite(port1, port1Bit, port1Bit);
 
 	for (i=0; i<100; i++);
@@ -165,11 +166,11 @@ ui8 macAddr[8];
 	// PB6 <-> PD6
 	SelfTestPair ( GPIO_PORTB_BASE, BIT6, GPIO_PORTD_BASE, BIT6, TEST_FAIL_IO2_4 );
 	// PB5 <-> PB4
-	SelfTestPair ( GPIO_PORTB_BASE, BIT5, GPIO_PORTB_BASE, BIT4, TEST_FAIL_IO2_5 );
+	SelfTestPair ( GPIO_PORTB_BASE, BIT4, GPIO_PORTB_BASE, BIT5, TEST_FAIL_IO2_5 );
 	// PB3 <-> PD5
-	SelfTestPair ( GPIO_PORTB_BASE, BIT3, GPIO_PORTD_BASE, BIT5, TEST_FAIL_IO2_6 );
+	SelfTestPair ( GPIO_PORTB_BASE, GPIO_PIN_3, GPIO_PORTD_BASE, GPIO_PIN_5, TEST_FAIL_IO2_6 );
 	// PB2 <-> PD4
-	SelfTestPair ( GPIO_PORTB_BASE, BIT2, GPIO_PORTD_BASE, BIT4, TEST_FAIL_IO2_7 );
+	SelfTestPair ( GPIO_PORTB_BASE, GPIO_PIN_2, GPIO_PORTD_BASE, GPIO_PIN_4, TEST_FAIL_IO2_7 );
 	// PB1 <-> PD1
 	SelfTestPair ( GPIO_PORTB_BASE, BIT1, GPIO_PORTD_BASE, BIT1, TEST_FAIL_IO2_8 );
 	// PB0 <-> PD0
@@ -177,7 +178,7 @@ ui8 macAddr[8];
 
 
 	// Reset Processor to Re-Init
-	UARTprintf("Reboot to restore IO Configuration");
+	UARTprintf("Reboot to restore IO Configuration\n");
 }
 
 

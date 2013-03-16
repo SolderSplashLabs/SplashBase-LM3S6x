@@ -96,11 +96,10 @@ void Ethernet_ReConfig ( void )
 	}
 	else
 	{
+		// Flip between static and Dynamic to force dynamic ip refresh
+		lwIPNetworkConfigChange(0, 0, 0, IPADDR_USE_STATIC);
 		lwIPNetworkConfigChange(0, 0, 0, IPADDR_USE_DHCP);
 	}
-
-	// Save the change
-	SysConfigSave();
 }
 
 //*****************************************************************************
@@ -127,6 +126,13 @@ void lwIPHostTimerHandler (void)
 	{
 		// Network Connection status has changed
 		EthernetConnected = bLinkStatusUp;
+
+		if ( EthernetConnected )
+		{
+			// We werent connected, we are now
+			// We may have changed network so re-apply the configuration
+			Ethernet_ReConfig();
+		}
 	}
 
 	IpAddress = lwIPLocalIPAddrGet();
