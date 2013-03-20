@@ -12,21 +12,6 @@
 #define _EXT_GPIO_
 #include "SplashBaseHeaders.h"
 
-/*
-#include "datatypes.h"
-#include "inc/hw_types.h"
-#include "inc/hw_ints.h"
-#include "inc/hw_memmap.h"
-#include "inc/hw_types.h"
-#include "inc/hw_i2c.h"
-#include "driverlib/gpio.h"
-#include "driverlib/i2c.h"
-#include "driverlib/sysctl.h"
-
-#define _EXT_GPIO_
-#include "externalGpio.h"
-*/
-
 // 32bit I/O Card, There are 8 possible addresses :
 // 0x20, 0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27
 
@@ -125,7 +110,7 @@ static void ExtGpio_UpdateDirection( void )
 ui8 i = 0;
 ui8 selectedMask = 0;
 
-	// loop through each I2C address looking for a reply.
+	// loop through each I2C address looking for one to update
 	for (i=0; i<PCA_MAX; i++)
 	{
 		selectedMask = (0x01 << i);

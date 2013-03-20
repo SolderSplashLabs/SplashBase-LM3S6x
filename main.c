@@ -16,6 +16,8 @@
 
 #include "SplashBaseHeaders.h"
 
+bool FirmwareUpdateReq = false;
+
 // *****************************************************************************
 // SysTickIntHandler
 // Called By the SysTick Interrupt
@@ -55,6 +57,44 @@ void SysTickIntHandler(void)
 }
 
 // *****************************************************************************
+// UpdateFirmware
+// Do not call from an interrupt! - Jumps to the bootloader for flash update
+// *****************************************************************************
+static void UpdateFirmware ( void )
+{
+	//
+	// Disable all processor interrupts.  Instead of disabling them
+	// one at a time (and possibly missing an interrupt if new sources
+	// are added), a direct write to NVIC is done to disable all
+	// peripheral interrupts.
+	//
+	HWREG(NVIC_DIS0) = 0xffffffff;
+	HWREG(NVIC_DIS1) = 0xffffffff;
+
+	//
+	// Also disable the SysTick interrupt.
+	//
+	SysTickIntDisable();
+
+	//
+	// Return control to the boot loader.  This is a call to the SVC
+	// handler in the boot loader, or to the ROM if available.
+	//
+	(*((void (*)(void))(*(unsigned long *)0x2c)))();
+}
+
+// *****************************************************************************
+// IdleTasks
+// Tasks to perform while idle
+// *****************************************************************************
+void UpdateFirmwareReq ( void )
+{
+	// TODO : Put some protection around this.
+	// TODO : Allow it to be disabled
+	FirmwareUpdateReq = true;
+}
+
+// *****************************************************************************
 // IdleTasks
 // Tasks to perform while idle
 // *****************************************************************************
@@ -62,6 +102,11 @@ void IdleTasks ( void )
 {
 	// Tasks performed in the Idle task can and will be interrupted so only tasks that can handle
 	// that can be performed. they may also be starved if the scheduled tasks are busy.
+
+	if ( FirmwareUpdateReq )
+	{
+		UpdateFirmware();
+	}
 }
 
 
@@ -193,10 +238,7 @@ int main(void)
 	SSC_MACAddrSet((ui8 *)tmpMacAddr);
 	SSC_SetUnitName((ui8 *)SystemConfig.splashBaseName);
 
-	SSC_SetRelayName((ui8 *)SystemConfig.relayOneName, 0);
-	SSC_SetRelayName((ui8 *)SystemConfig.relayTwoName, 1);
-	SSC_SetRelayName((ui8 *)SystemConfig.relayThreeName, 2);
-	SSC_SetRelayName((ui8 *)SystemConfig.relayFourName, 3);
+	SSC_SetRelayNames();
 
 	while (1)
 	{

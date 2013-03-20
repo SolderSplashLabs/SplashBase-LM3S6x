@@ -45,6 +45,7 @@
 #include "upnp.h"
 #endif
 
+#include "main.h"
 #include "selfTest.h"
 #include "colourModes.h"
 #include "cosm.h"

@@ -239,5 +239,6 @@ void SysSetBaseName ( ui8 *buffer, ui8 len );
 void SysSetSntpAddress ( ui8 *buffer, ui8 len );
 void SysConfigRelayEnable ( void );
 void SysConfigRelayDisable ( void );
+void SysSetRelayName ( ui8 *buffer, ui8 len, ui8 relayNo, bool saveNow );
 
 

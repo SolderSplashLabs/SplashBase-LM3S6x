@@ -14,42 +14,9 @@
 
 #include <string.h>
 
-/*
-#include "inc/hw_ints.h"
-#include "inc/hw_memmap.h"
-#include "inc/hw_types.h"	
-#include "inc/hw_nvic.h"
-#include "lwiplib.h"
-#include "driverlib/gpio.h"
-#include "driverlib/sysctl.h"
-
-#include "datatypes.h"
-#include "globals.h"
-
-#include "config.h"
-
-#include "relayControl.h"
-#include "pwmControl.h"
-#include "colourModes.h"
-#include "logicController.h"
-#include "solderBridge\solderBridgeSpi.h"
-#include "userGpioControl.h"
-#include "ethernetControl.h"
-
-#define UDPCONTROL
-#include "udpControl.h"
-*/
-
-
 //*****************************************************************************
 //
-//! Initialises the Control service.
-//!
-//! This function prepares the locator service to handle device discovery
-//! requests.  A UDP server is created and the locator response data is
-//! initialized to all empty.
-//!
-//! \return None.
+// SSC_Init - Start listening on a socket for commands
 //
 //*****************************************************************************
 void SSC_Init(void)
@@ -65,14 +32,7 @@ void SSC_Init(void)
 
 //*****************************************************************************
 //
-//! Sets the MAC address in the locator response packet.
-//!
-//! \param pucMACArray is the MAC address of the network interface.
-//!
-//! This function sets the MAC address of the network interface in the locator
-//! response packet.
-//!
-//! \return None.
+// SSC_MACAddrSet - sets the MAC address advertised via UDP
 //
 //*****************************************************************************
 void SSC_MACAddrSet(unsigned char *pucMACArray)
@@ -89,6 +49,7 @@ void SSC_MACAddrSet(unsigned char *pucMACArray)
 }
 
 //*****************************************************************************
+//
 // SSC_SetUnitName
 // Sets the unit name that is used when talking to the network
 //
@@ -121,52 +82,14 @@ ui8 strLenCnt = 0;
 // Sets the unit name that is used when talking to the network
 //
 //*****************************************************************************
-void SSC_SetRelayName(const ui8 *relayName, ui8 relayNo)
+void SSC_SetRelayNames ( void )
 {
-ui8 strLenCnt = 0;
-ui8 replyBufPos = 0;
-
-	switch ( relayNo )
-	{
-		case 0 :
-			replyBufPos = SSC_POS_RELAY1NAME;
-		break;
-
-		case 1 :
-			replyBufPos = SSC_POS_RELAY2NAME;
-		break;
-
-		case 2 :
-			replyBufPos = SSC_POS_RELAY3NAME;
-		break;
-
-		case 3 :
-			replyBufPos = SSC_POS_RELAY4NAME;
-		break;
-
-		default :
-			// Erm not a valid relay !
-			return;
-	}
-
-	// Loop until you hit the max string length or find a 0 in the string
-	for(strLenCnt = 0; (strLenCnt < SPLASHBASE_RELAYNAME_LEN) && *relayName; strLenCnt++)
-	{
-		SscReplyBuffer[strLenCnt + replyBufPos] = *relayName++;
-	}
-
-	//
-	// Zero-fill the remainder of the space in the response data (if any).
-	//
-	for(; strLenCnt < SPLASHBASE_RELAYNAME_LEN; strLenCnt++)
-	{
-		SscReplyBuffer[strLenCnt + replyBufPos] = 0;
-	}
+	memcpy( &SscReplyBuffer[SSC_POS_RELAY1NAME], (char *)&SystemConfig.relayOneName, (SPLASHBASE_RELAYNAME_LEN * 4) );
 }
 
 //*****************************************************************************
-// SSC_SendReply
-// Sends the Boards Status out
+//
+// SSC_SendReply - Sends the SplashBase Status out
 //
 //*****************************************************************************
 static void SSC_SendReply(struct pbuf *p, struct ip_addr *addr)
@@ -276,111 +199,13 @@ volatile ui8 *pucData;
     pbuf_free(p);	
 }
 
-/*
-bool SSC_CMD_RelayCon ( ui8 *buffer, ui8 len );
-bool SSC_CMD_PwmDuty ( ui8 *buffer, ui8 len );
-bool SSC_CMD_PwmDutyAll ( ui8 *buffer, ui8 len );
-bool SSC_CMD_PwmFreq ( ui8 *buffer, ui8 len );
-bool SSC_CMD_PwmDColorMode ( ui8 *buffer, ui8 len );
-bool SSC_CMD_SetUnitName ( ui8 *buffer, ui8 len );
-bool SSC_CMD_SetRelayName ( ui8 *buffer, ui8 len );
-bool SSC_CMD_Reset ( ui8 *buffer, ui8 len );
-bool SSC_CMD_OutputsOnOff ( ui8 *buffer, ui8 len );
-bool SSC_CMD_GpioDir ( ui8 *buffer, ui8 len );
-bool SSC_CMD_GpioData ( ui8 *buffer, ui8 len );
-bool SSC_CMD_LogicAdd ( ui8 *buffer, ui8 len );
-bool SSC_CMD_SetServoPos ( ui8 *buffer, ui8 len );
-
-
 //*****************************************************************************
-// SSC_ProcessCommand
-// Process received UDP commands
+//
+// SSC_SendPortInfo - Sends the GPIO info message
 //
 //*****************************************************************************
-static void SSC_ProcessCommand(struct udp_pcb *pcb, struct pbuf *p, struct ip_addr *addr)
-{
-volatile ui8 *pucData;
-
-	// UDP packet is already checksumed so packet should be valid
-
-	pucData = p->payload;
-
-	switch( pucData[0] )
-	{
-		case SSC_PING :
-			SSC_CMD_RelayCon
-		break;
-
-		case SSC_RELAY_CON :
-
-		break;
-
-		case SSC_PWM_DUTY :
-
-		break;
-
-		case SSC_PWM_DUTY_ALL :
-
-		break;
-
-		case SSC_PWM_FREQ :
-
-		break;
-
-		case SSC_PWM_COLOUR_MODE :
-
-		break;
-
-		case SSC_SET_UNIT_NAME :
-
-		break;
-
-		case SSC_SET_RELAY_NAME :
-
-		break;
-
-		case SSC_RESET :
-
-		break;
-
-		case SSC_OUTPUTS_ON_OFF :
-
-		break;
-
-		case SSC_MANUAL_GPIO_DIR :
-
-		break;
-
-		case SSC_MANUAL_GPIO_DATA :
-
-		break;
-
-		case SSC_LOGIC_INSERT_CON :
-
-		break;
-
-		case SSC_SB_SERVOPOS :
-
-		break;
-
-		default :
-
-		break;
-	}
-
-	pbuf_free(p);
-
-	if ( replyWithStatus )
-	{
-		SSC_SendReply(p,addr);
-	}
-
-}
-*/
-
 void SSC_SendPortInfo ( struct ip_addr *addr, ui16 reason )
 {
-bool result = false;
 volatile ui8 *pucData;
 struct pbuf *p;
 ui8 pos;
@@ -448,36 +273,103 @@ ui32 ulIPAddress = 0;
 	}
 }
 
+
 //*****************************************************************************
-// SSC_ProcessCommand
-// Process received UDP commands
+//
+// SSC_UpdatePwmDuty - Processes a PWM Duty message
+//
+//*****************************************************************************
+void SSC_UpdatePwmDuty( ui8 *buffer )
+{
+volatile float scaledFreqFloat;
+ui8 bitFlags = buffer[1];
+ui8 mask = 0;
+ui8 i = 0;
+ui16 *pwmDuty;
+
+	if ( bitFlags & BIT7 )
+	{
+		scaledFreqFloat = pwmGetFreq();
+	}
+
+	for (i=0; i<7; i++)
+	{
+		mask = (0x01 << i);
+		if ( bitFlags & mask )
+		{
+			// PWM duty for this channel will be Updated,
+			// 2 is the offset in the message of the first PWM value
+			pwmDuty = (ui16 *)&buffer[2+(i*2)];
+
+			if ( bitFlags & BIT7 )
+			{
+				*pwmDuty = scaledFreqFloat * (float)((float)*pwmDuty / (float)100 );
+			}
+
+			pwmSetDuty( *pwmDuty, mask );
+		}
+	}
+}
+
+//*****************************************************************************
+//
+// SSC_SplashPixelUpdate - Update for the SplashPixel Panel
+//
+//*****************************************************************************
+void SSC_SplashPixelUpdate ( struct pbuf *p )
+{
+#ifdef SPLASHPIXEL_ENABLED
+volatile ui8 *pucData;
+struct pbuf *nextP;
+ui16 messageLen;
+ui16 messageOffset;
+
+	// Long UDP messages arrive in chunks from lwip
+	messageLen = p->tot_len;
+	messageOffset = 0;
+
+	pucData = p->payload;
+
+	SP_CopyFrameBuffer(messageOffset, &pucData[4], p->len-4);
+
+	messageOffset += p->len;
+
+	nextP = p;
+
+	while (( nextP->tot_len > nextP->len ) || ( messageOffset < messageLen))
+	{
+		// move to next buffer
+		nextP = nextP->next;
+		pucData = nextP->payload;
+		SP_CopyFrameBuffer((messageOffset-4), &pucData[0], nextP->len);
+
+		// Update total bytes processed
+		messageOffset += nextP->len;
+	}
+#endif
+}
+
+//*****************************************************************************
+//
+// SSC_ProcessCommand - Process received UDP commands
 //
 //*****************************************************************************
 static void SSC_ProcessCommand(struct udp_pcb *pcb, struct pbuf *p, struct ip_addr *addr)
 {
 volatile ui8 *pucData;
-ui32 *ptLong;
-ui32 *ptLong2;
 ui16 tempInt;
-ui16 tempInt2;
 ui32 tempLong;
 ui32 tempLong2;
-ui16 tempDuty0;
-ui16 tempDuty1;
-ui16 tempDuty2;
-volatile double scaledFreqFloat;
+
 ui8 replyWithStatus = 0;
-struct pbuf *nextP;
 
-
-	//
-	// Validate the contents of the datagram.
-	//
+	// Action the Message, be decided what command was sent
     pucData = p->payload;
     
 	switch( pucData[0] )
 	{
 		case SSC_PING :
+			// Todo : check for hello ?
 			replyWithStatus = true;
 		break;
 		
@@ -485,68 +377,21 @@ struct pbuf *nextP;
 			// bit fields to indicate which relays need to be on or off
 			RelayControl( pucData[1], pucData[2]  );
 		break;
-	
-		case SSC_PWM_DUTY :
-			// Byte1 MSB, Byte2 LSB, Byte3 Channel Mask, Byte4 Duty Scaled Flag
-			// Set the duty of all PWM, to the supplied 16 bit value
-			tempInt = (pucData[1] << 8) |  pucData[2];
 			
-			if ( pucData[4] )
-			{
-
-			}
-			
-			pwmSetDuty( tempInt, pucData[3] );
-			
-		break;
-		
 		case SSC_PWM_DUTY_ALL :
-			// Byte1 MSB, Byte2 LSB, Byte3 Channel Mask, Byte4 Duty Scaled Flag
-			// Set the duty of all PWM, to the supplied 16 bit value
-			
-			tempDuty0 = (pucData[1] << 8) |  pucData[2];
-			tempDuty1 = (pucData[3] << 8) |  pucData[4];
-			tempDuty2 = (pucData[5] << 8) |  pucData[6];
-			
-			if ( pucData[7] )
-			{
-				/*
-				scaledFreqFloat = (float)( (float)pwmGetFreq() /  (float)100);
-				tempDuty0 = (ui32)((float)tempDuty0 * scaledFreqFloat);
-				tempDuty1 = (ui32)((float)tempDuty1 * scaledFreqFloat);
-				tempDuty2 = (ui32)((float)tempDuty2 * scaledFreqFloat);
-				*/
-
-				scaledFreqFloat = pwmGetFreq();
-				tempDuty0 = scaledFreqFloat * ((float)tempDuty0 / (float)100);
-				tempDuty1 = scaledFreqFloat * ((float)tempDuty1 / (float)100);
-				tempDuty2 = scaledFreqFloat * ((float)tempDuty2 / (float)100);
-
-				/*
-				scaledFreqFloat = 0xFFFF / pwmGetFreq();
-				scaledFreqFloat *= 1000;
-				
-				tempDuty0 = (ui32)(tempDuty0 / scaledFreqFloat) * 1000;
-				tempDuty1 = (ui32)(tempDuty1 / scaledFreqFloat) * 1000;
-				tempDuty2 = (ui32)(tempDuty2 / scaledFreqFloat) * 1000;
-				*/
-			}
-					
-			pwmSetDuty( tempDuty0, 0x01 );
-			pwmSetDuty( tempDuty1, 0x02 );
-			pwmSetDuty( tempDuty2, 0x04 );			
-			
+			SSC_UpdatePwmDuty( (ui8 *)pucData );
 		break;
 		
 		case SSC_PWM_FREQ :
-			tempInt = (pucData[1] << 8) |  pucData[2];
+			tempInt = (pucData[2] << 8) |  pucData[1];
 			pwmSetFreq( tempInt,  0xFF );
 		break;
 		
 		case SSC_PWM_COLOUR_MODE :
 			tempLong = (pucData[2] << 16) | (pucData[3] << 8) | pucData[4];
 			tempLong2 = (pucData[5] << 16) | (pucData[6] << 8) | pucData[7];
-			tempInt = (pucData[9] << 8) | pucData[10];
+			tempInt = (pucData[10] << 8) | pucData[9];
+
 			ColourModeSet(pucData[1], tempLong, tempLong2, tempInt, pucData[8]);		
 		break;
 	
@@ -558,42 +403,7 @@ struct pbuf *nextP;
 			// String length
 			tempInt = pucData[2];
 
-			if (tempInt > SPLASHBASE_RELAYNAME_LEN) tempInt = SPLASHBASE_RELAYNAME_LEN;
-
-			switch (pucData[1])
-			{
-				case 0 :
-					memcpy(SystemConfig.relayOneName, (char *)&pucData[3], tempInt);
-					if (tempInt < SPLASHBASE_RELAYNAME_LEN) SystemConfig.relayOneName[tempInt] = 0;
-
-					SSC_SetRelayName((ui8 *)SystemConfig.relayOneName, 0 );
-
-				break;
-
-				case 1 :
-					memcpy(SystemConfig.relayTwoName, (char *)&pucData[3], tempInt);
-					if (tempInt < SPLASHBASE_RELAYNAME_LEN) SystemConfig.relayTwoName[tempInt] = 0;
-
-					SSC_SetRelayName((ui8 *)SystemConfig.relayTwoName, 1 );
-				break;
-
-				case 2 :
-					memcpy(SystemConfig.relayThreeName, (char *)&pucData[3], tempInt);
-					if (tempInt < SPLASHBASE_RELAYNAME_LEN) SystemConfig.relayThreeName[tempInt] = 0;
-
-					SSC_SetRelayName((ui8 *)SystemConfig.relayThreeName, 2 );
-				break;
-
-				case 3 :
-					memcpy(SystemConfig.relayFourName, (char *)&pucData[3], tempInt);
-					if (tempInt < SPLASHBASE_RELAYNAME_LEN) SystemConfig.relayFourName[tempInt] = 0;
-
-					SSC_SetRelayName((ui8 *)SystemConfig.relayFourName, 3 );
-				break;
-			}
-
-			SysConfigSave();
-
+			SysSetRelayName ( (ui8 *)&pucData[3], pucData[2], pucData[1], true );
 		break;
 
 		case SSC_RESET :
@@ -604,29 +414,15 @@ struct pbuf *nextP;
 			}
 		break;
 		
-		case SSC_OUTPUTS_ON_OFF :
-			if ( pucData[1] )
-			{
-				if ( pucData[2] & BIT0 ) pwmOn();
-				if ( pucData[2] & BIT1 ) relaysOn();
-			}
-			else
-			{
-				if ( pucData[2] & BIT0 ) pwmOff();
-				if ( pucData[2] & BIT1 ) relaysOff();
-			}
-		break;
-		
 		case SSC_MANUAL_GPIO_DIR :
-			ptLong = (ui32 *)&pucData[2];
-			ptLong2 = (ui32 *)&pucData[6];
-			UserGpioDirection( pucData[1], *ptLong, *ptLong2 );
+			// Port, Mask, Data
+
+			UserGpioDirection( pucData[1], (ui32)((ui32 *)&pucData[2]), (ui32)((ui32 *)&pucData[6]) );
 		break;
 
 		case SSC_MANUAL_GPIO_DATA :
-			ptLong = (ui32 *)&pucData[2];
-			ptLong2 = (ui32 *)&pucData[6];
-			UserGpioSetOutputs( pucData[1], *ptLong, *ptLong2 );
+			// Port, Mask, Data
+			UserGpioSetOutputs( pucData[1], (ui32)((ui32 *)&pucData[2]), (ui32)((ui32 *)&pucData[6]) );
 		break;
 
 		case SSC_LOGIC_INSERT_CON :
@@ -638,30 +434,7 @@ struct pbuf *nextP;
 		break;
 
 		case SSC_SPLASHPIXEL_FBSET :
-
-			#ifdef SPLASHPIXEL_ENABLED
-			// Long UDP messages arrive in chunks from lwip
-			tempInt = p->tot_len;
-			tempInt2 = 0;
-
-			SP_CopyFrameBuffer(tempInt2, &pucData[4], p->len-4);
-
-			tempInt2 += p->len;
-
-			nextP = p;
-
-			while (( nextP->tot_len > nextP->len ) || ( tempInt2 < tempInt))
-			{
-				// move to next buffer
-				nextP = nextP->next;
-				pucData = nextP->payload;
-				SP_CopyFrameBuffer((tempInt2-4), &pucData[0], nextP->len);
-
-				// Update total bytes processed
-				tempInt2 += nextP->len;
-			}
-			#endif
-
+			SSC_SplashPixelUpdate( p );
 		break;
 
 		default :
@@ -687,11 +460,7 @@ struct pbuf *nextP;
 //*****************************************************************************
 static void SSC_Recieve(void *arg, struct udp_pcb *pcb, struct pbuf *p, struct ip_addr *addr, u16_t port)
 {
-	//
-	// Validate the contents of the datagram.
-	//
-
-	// the supplied p buf will indicate if theres more than one message buffer
+	// the supplied p buf will indicate if there is more than one message buffer
 	if ( p->len != p->tot_len )
     {
     	
@@ -704,7 +473,6 @@ static void SSC_Recieve(void *arg, struct udp_pcb *pcb, struct pbuf *p, struct i
     // The incoming pbuf is no longer needed, so free it.
     //
     pbuf_free(p);
-
 }
 
 

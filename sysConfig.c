@@ -159,3 +159,52 @@ void SysConfigRelayDisable ( void )
 		// Already disabled
 	}
 }
+
+// *****************************************************************************
+//
+// SysSetBaseName - Set a new Base board name
+//
+// *****************************************************************************
+void SysSetRelayName ( ui8 *buffer, ui8 len, ui8 relayNo, bool saveNow )
+{
+char * relayName = 0;
+ui8 i = 0;
+
+	if (len > SPLASHBASE_RELAYNAME_LEN-1) len = SPLASHBASE_RELAYNAME_LEN-1;
+
+	switch ( relayNo )
+	{
+		case 1 :
+			relayName = (char *)SystemConfig.relayOneName;
+		break;
+
+		case 2 :
+			relayName = (char *)SystemConfig.relayTwoName;
+		break;
+
+		case 3 :
+			relayName = (char *)SystemConfig.relayThreeName;
+		break;
+
+		case 4 :
+			relayName = (char *)SystemConfig.relayFourName;
+		break;
+	}
+
+	if ( relayName )
+	{
+		// Copy the new name over
+		ustrncpy(relayName, (const char *)buffer, len);
+
+		// Zero-fill the remainder of the space
+		for(i=len; i < SPLASHBASE_RELAYNAME_LEN; i++)
+		{
+			relayName[i] = 0;
+		}
+
+		// Update the SolderSplash UDP Protocol
+		SSC_SetRelayNames();
+
+		if ( saveNow ) SysConfigSave();
+	}
+}

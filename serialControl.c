@@ -433,7 +433,7 @@ tTime currentTime;
 				}
 				else
 				{
-					SystemConfig.timeOffset = ustrtoul((const char *)&argv[3], 0, 10);
+					SystemConfig.timeOffset = ustrtoul((const char *)&argv[3][0], 0, 10);
 				}
 			}
 
@@ -728,7 +728,7 @@ ui32 internalDegC = AdcGetInternalTemp();
 
 ui32 tempSensor = AdcGetTemperature();
 
-	UARTprintf("MCU : %u°C - Sensor : %u°C\n", internalDegC, tempSensor);
+	UARTprintf("Board Temp Sensor : %u°C\n", tempSensor);
 
 	return (0);
 }
@@ -742,11 +742,11 @@ ui32 tempSensor = AdcGetTemperature();
 //*****************************************************************************
 int CMD_GetLogic (int argc, char **argv)
 {
+	/*
 ui8 i = 0;
 
 	UARTprintf("\n");
 
-	/*
 	for ( i=0; i<10; i++ )
 	{
 		if ( LogicConditions[i].active )
@@ -1046,6 +1046,18 @@ ui16 stringLen = 0;
 	{
 		UARTprintf("Host : %s - URI : %s - Private Key : %s \n", SystemConfig.cosmHost, SystemConfig.cosmUrl, SystemConfig.cosmPrivKey);
 	}
+
+	return (0);
+}
+
+//*****************************************************************************
+//
+// Command: CMD_FirmwareUpdate
+//
+//*****************************************************************************
+int CMD_FirmwareUpdate (int argc, char **argv)
+{
+	UpdateFirmwareReq();
 
 	return (0);
 }

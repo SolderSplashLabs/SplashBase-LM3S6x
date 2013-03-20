@@ -94,6 +94,9 @@ static void SSC_Recieve(void *arg, struct udp_pcb *pcb, struct pbuf *p, struct i
 
 void SSC_Init(void);
 void SSC_MACAddrSet(ui8 *pucMACArray);
-void SSC_SetRelayName(const ui8 *relayName, ui8 relayNo);
+void SSC_SetRelayNames ( void );
 void SSC_SetUnitName(const ui8 *pcAppTitle);
 void SSC_SendPortInfo ( struct ip_addr *addr, ui16 reason );
+void SSC_UpdatePwmDuty( ui8 *buffer );
+void SSC_SplashPixelUpdate ( struct pbuf *p );
+
