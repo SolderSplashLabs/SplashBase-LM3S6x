@@ -162,7 +162,7 @@ void SysConfigRelayDisable ( void )
 
 // *****************************************************************************
 //
-// SysSetBaseName - Set a new Base board name
+// SysSetRelayName - Set a new name for a relay
 //
 // *****************************************************************************
 void SysSetRelayName ( ui8 *buffer, ui8 len, ui8 relayNo, bool saveNow )

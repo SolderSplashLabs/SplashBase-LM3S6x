@@ -106,7 +106,7 @@ void CosmTest(unsigned long data)
 
 	if ( pcb != 0 )
 	{
-		tcp_bind(pcb, IP_ADDR_ANY, 1223);
+		tcp_bind(pcb, IP_ADDR_ANY, 0);
 		error = tcp_connect(pcb, (struct ip_addr *)&CosmIpAddress, 80, CosmOnline);
 
 		if ( ERR_OK == error )
