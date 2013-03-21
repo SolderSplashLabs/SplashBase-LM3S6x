@@ -85,7 +85,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="logicController.c|utils/random.c|solderBridge/solderBridge32IO.c|utils/httpd.c|telnet.c|serial.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="telnetControl.c|logicController.c|utils/random.c|solderBridge/solderBridge32IO.c|utils/httpd.c|telnet.c|serial.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
@@ -156,7 +156,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="logicController.c|utils/random.c|solderBridge/solderBridge32IO.c|utils/httpd.c|telnet.c|serial.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="telnetControl.c|logicController.c|utils/random.c|solderBridge/solderBridge32IO.c|utils/httpd.c|telnet.c|serial.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>

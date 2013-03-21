@@ -417,12 +417,12 @@ ui8 replyWithStatus = 0;
 		case SSC_MANUAL_GPIO_DIR :
 			// Port, Mask, Data
 
-			UserGpioDirection( pucData[1], (ui32)((ui32 *)&pucData[2]), (ui32)((ui32 *)&pucData[6]) );
+			UserGpioDirection( pucData[1], (*(ui32 *)&pucData[2]), (*(ui32 *)&pucData[6]) );
 		break;
 
 		case SSC_MANUAL_GPIO_DATA :
 			// Port, Mask, Data
-			UserGpioSetOutputs( pucData[1], (ui32)((ui32 *)&pucData[2]), (ui32)((ui32 *)&pucData[6]) );
+			UserGpioSetOutputs( pucData[1], (*(ui32 *)&pucData[2]), (*(ui32 *)&pucData[6]) );
 		break;
 
 		case SSC_LOGIC_INSERT_CON :
