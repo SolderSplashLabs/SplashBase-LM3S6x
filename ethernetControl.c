@@ -153,7 +153,10 @@ void lwIPHostTimerHandler (void)
 			// We have an IP, thats not a default local only
 			if (! askedForTime)
 			{
-				//SntpGetTime();
+				if ( SystemConfig.flags.NtpEnabled )
+				{
+					//SntpGetTime();
+				}
 				askedForTime = true;
 			}
 		}

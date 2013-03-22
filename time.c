@@ -39,7 +39,10 @@ void Time_Task ( void )
 		if ( ntpCounter >= SECONDS_IN_HALF_DAY )
 		{
 			// Each day update the clock
-			SntpGetTime();
+			if ( SystemConfig.flags.NtpEnabled )
+			{
+				SntpGetTime();
+			}
 			ntpCounter = 0;
 		}
 	}

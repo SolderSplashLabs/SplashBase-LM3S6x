@@ -30,14 +30,14 @@
 
 typedef struct
 {
-	ui8 Spare2:1;
-	ui8 Spare1:1;
-	ui8 LogicEnabled:1;
-	ui8 RgbPwmEnable:1;
-	ui8 FourRelayEnable:1;
-	ui8 UserGpioInit:1;
-	ui8 CustomSNTP:1;
-	ui8 StaticIp:1;
+	ui8 Spare:1;					//
+	ui8 PwmEnabled:1;				// PWM control of PWM Pins Enabled
+	ui8 LogicEnabled:1;				// Enable Logic controller
+	ui8 RgbPwmEnable:1;				// Enable Colour control
+	ui8 FourRelayEnable:1;			// 4 Relay board attached
+	ui8 UserGpioInit:1;				// User GPIO init
+	ui8 NtpEnabled:1;				// Auto time/date update
+	ui8 StaticIp:1;					// Use a Static IP
 }
 SysConfigFlags;
 

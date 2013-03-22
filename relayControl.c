@@ -24,17 +24,21 @@ void RelayInit( void )
 {
 	volatile ui32 dummy;
 
-	// Allow relay control
-	RelayStatus = 1;
+	if ( SystemConfig.flags.FourRelayEnable )
+	{
+		GPIOPinWrite(GPIO_PORTD_BASE, RELAY_OUT_BITS, 0);
+
+		// Set the relay lines as outputs
+		GPIOPinTypeGPIOOutput(GPIO_PORTD_BASE, RELAY_OUT_BITS);
+
+		UserGpio_AppSetMask(USER_GPIO_PORTD, RELAY_OUT_BITS);
 	
-    GPIOPinWrite(GPIO_PORTD_BASE, RELAY_OUT_BITS, 0);
-
-    // Set the relay lines as outputs
-    GPIOPinTypeGPIOOutput(GPIO_PORTD_BASE, RELAY_OUT_BITS);
-    
-    UserGpio_AppSetMask(USER_GPIO_PORTD, RELAY_OUT_BITS);
-
-    RelayControl( 0, RELAY_OUT_BITS );
+		RelayControl( 0, RELAY_OUT_BITS );
+	}
+	else
+	{
+		// Do nothing
+	}
 }
 
 // *****************************************************************************
@@ -93,7 +97,7 @@ void RelayControl( ui8 closedRelays, ui8 mask )
 	}
 	
 	// Apply it to the port	if relay output is allowed
-	if (RelayStatus)
+	if ( SystemConfig.flags.FourRelayEnable )
 	{
 		GPIOPinWrite(GPIO_PORTD_BASE, RELAY_OUT_BITS, RelaysClosed);
 	}
@@ -103,16 +107,18 @@ void RelayControl( ui8 closedRelays, ui8 mask )
 
 void relaysOn( void )
 {
-	GPIOPinWrite(GPIO_PORTD_BASE, RELAY_OUT_BITS, RelaysClosed);
-	
-	RelayStatus = 1;
+	if ( SystemConfig.flags.FourRelayEnable )
+	{
+		GPIOPinWrite(GPIO_PORTD_BASE, RELAY_OUT_BITS, RelaysClosed);
+	}
 }
 
 void relaysOff( void )
 {
-	GPIOPinWrite(GPIO_PORTD_BASE, RELAY_OUT_BITS, 0);
-	
-	RelayStatus = 0;
+	if ( SystemConfig.flags.FourRelayEnable )
+	{
+		GPIOPinWrite(GPIO_PORTD_BASE, RELAY_OUT_BITS, 0);
+	}
 }
 
 ui8 RelayGetClosed( void )

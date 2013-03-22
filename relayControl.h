@@ -1,8 +1,6 @@
 #ifdef RELAYCONTROL
 
 ui8 RelaysClosed = 0x00;
-ui8 RelayStatus = false;
-
 
 #if SPLASHBASE_BOARD_REV == 2
 	#define RELAY_1_BIT	BIT0

@@ -61,19 +61,17 @@ ui8 strLenCnt = 0;
 	// Todo : Magic numbers ...
 
 	// Loop until you hit the max string length or find a 0 in the string
-	for(strLenCnt = 0; (strLenCnt < 20) && *pcAppTitle; strLenCnt++)
+	for(strLenCnt = 0; (strLenCnt < SPLASHBASE_RELAYNAME_LEN-1) && *pcAppTitle; strLenCnt++)
 	{
-		SscReplyBuffer[strLenCnt + 31] = *pcAppTitle++;
+		SscReplyBuffer[strLenCnt + SSC_POS_UNITNAME] = *pcAppTitle++;
 	}
-
-	SscReplyBuffer[30] = strLenCnt;
 
 	//
 	// Zero-fill the remainder of the space in the response data (if any).
 	//
-	for(; strLenCnt < 20; strLenCnt++)
+	for(; strLenCnt < SPLASHBASE_RELAYNAME_LEN-1; strLenCnt++)
 	{
-		SscReplyBuffer[strLenCnt + 31] = 0;
+		SscReplyBuffer[strLenCnt + SSC_POS_UNITNAME] = 0;
 	}
 }
 
@@ -92,8 +90,9 @@ void SSC_SetRelayNames ( void )
 // SSC_SendReply - Sends the SplashBase Status out
 //
 //*****************************************************************************
-static void SSC_SendReply(struct pbuf *p, struct ip_addr *addr)
+static void SSC_SendReply(struct ip_addr *addr)
 {
+struct pbuf *p;
 ui8 i = 0;
 unsigned long ulIPAddress;
 ui16 temp;
@@ -112,7 +111,7 @@ volatile ui8 *pucData;
     pucData = p->payload;
     
     // Message Header
-    SscReplyBuffer[SSC_POS_STARTBYTE] = 0xE0;
+    SscReplyBuffer[SSC_POS_STARTBYTE] = 0xE1;
     
     // Our IP
     ulIPAddress = lwIPLocalIPAddrGet();
@@ -127,6 +126,12 @@ volatile ui8 *pucData;
    	SscReplyBuffer[SSC_POS_SWREV] = SW_REV_MAJOR;
    	SscReplyBuffer[SSC_POS_SWREV+1] = SW_REV_MINOR;
    	
+
+   	SscReplyBuffer[SSC_POS_CONFIG_BITS] = (*(ui8 *)&SystemConfig.flags);
+
+   	// ADCs
+   	AdcAllAdcResults((ui16 *)&SscReplyBuffer[SSC_POS_ADC0], 3);
+
    	// Current Relay State
    	SscReplyBuffer[SSC_POS_RELAYSTATE] = RelayGetClosed();
     
@@ -153,31 +158,14 @@ volatile ui8 *pucData;
     SscReplyBuffer[SSC_POS_BLUEDUTY] = ColourSettings.bottomBlue;
     SscReplyBuffer[SSC_POS_STEPSIZE] = ColourSettings.ticksPerStep;
     
-    SscReplyBuffer[SSC_POS_STEPCNT] = 0x00FF & (ColourSettings.maxSteps >> 8);
-    SscReplyBuffer[SSC_POS_STEPCNT + 1] = 0x00FF & ColourSettings.maxSteps;
-    
-    // Set the global on/off flags
-    if (PwmStatus)
-    {
-    	SscReplyBuffer[SSC_POS_GLOBALOUT_BITS] |= BIT0;
-    }
-    else
-    {
-    	SscReplyBuffer[SSC_POS_GLOBALOUT_BITS] &= ~BIT0;
-    }
-
-	if (RelayStatus)
-	{
-    	SscReplyBuffer[SSC_POS_GLOBALOUT_BITS] |= BIT1;
-    }
-    else
-    {
-    	SscReplyBuffer[SSC_POS_GLOBALOUT_BITS] &= ~BIT1;
-    }
+    SscReplyBuffer[SSC_POS_STEPCNT] = 0x00FF & ColourSettings.maxSteps;
+    SscReplyBuffer[SSC_POS_STEPCNT + 1] = 0x00FF & (ColourSettings.maxSteps >> 8);
     
 	// Unit name already in the buffer
-
 	// As our relay names
+
+
+    (*(ui32 *)&SscReplyBuffer[SSC_POS_TIMESTAMP]) = Time_StampNow(SystemConfig.timeOffset);
 
     //
     // Copy the response packet data into the pbuf.
@@ -253,6 +241,99 @@ ui32 ulIPAddress = 0;
 			UserGpioGet(i, (ui32 *)&pucData[pos]);
 			pos += 4;
 		}
+
+		if ( 0xFFFFFFFF == addr->addr )
+		{
+			// Broadcast
+			addr = IP_ADDR_BROADCAST;
+		}
+		else
+		{
+			// Unicast
+		}
+
+		udp_sendto(UdpControlPort, p, addr, SSC_UDP_PORT_TX);
+
+		//
+		// Free the pbuf.
+		//
+		pbuf_free(p);
+	}
+}
+
+//*****************************************************************************
+//
+// SSC_UpdatePwmDuty - Processes a PWM Duty message
+//
+//*****************************************************************************
+void SSC_SendExtendedInfo( struct ip_addr *addr )
+{
+volatile ui8 *pucData;
+struct pbuf *p;
+ui8 pos;
+ui8 i = 0;
+ui8 x = 0;
+ui32 ulIPAddress = 0;
+
+	p = pbuf_alloc(PBUF_TRANSPORT, SSC_EXTD_REPLY_LEN, PBUF_RAM);
+
+	if(p == NULL)
+	{
+	   // No ram!
+		// TODO : Log
+	}
+	else
+	{
+		pucData = p->payload;
+
+		// Message Header
+		pucData[SSC_POS_STARTBYTE] = 0xE2;
+
+		// Our IP
+		ulIPAddress = lwIPLocalIPAddrGet();
+		pucData[SSC_POS_IP] = 0x000000FF & (ulIPAddress >> 24);
+		pucData[SSC_POS_IP + 1] = 0x000000FF & (ulIPAddress >> 16);
+		pucData[SSC_POS_IP + 2] = 0x000000FF & (ulIPAddress >> 8);
+		pucData[SSC_POS_IP + 3] = 0x000000FF & (ulIPAddress);
+
+		// MAC Addr
+		Ethernet_GetMacAddress((ui8 *)&pucData[SSC_POS_MAC]);
+
+		pucData[11] = (*(ui8 *)&SystemConfig.flags);
+		pucData[12] = 0;
+
+		for ( i=0; i<5; i++ )
+		{
+			pucData[13 + i] = SB_GetBridgeType(i);
+		}
+
+		// Use x as the i2c bridge count
+		x = 0;
+		for ( i=0; i<8; i++ )
+		{
+			// Initalise as 0 first
+			pucData[18 + i] = 0;
+
+			if ( IoExpanders.pcaAvailible & (0x01<<i) )
+			{
+				pucData[18 + x] = (0x20+i);
+				x++;
+			}
+		}
+
+		ulIPAddress = lwIPLocalNetMaskGet();
+		pucData[26] = 0x000000FF & (ulIPAddress >> 24);
+		pucData[26 + 1] = 0x000000FF & (ulIPAddress >> 16);
+		pucData[26 + 2] = 0x000000FF & (ulIPAddress >> 8);
+		pucData[26 + 3] = 0x000000FF & (ulIPAddress);
+
+		ulIPAddress = lwIPLocalGWAddrGet();
+		pucData[30] = 0x000000FF & (ulIPAddress >> 24);
+		pucData[30 + 1] = 0x000000FF & (ulIPAddress >> 16);
+		pucData[30 + 2] = 0x000000FF & (ulIPAddress >> 8);
+		pucData[30 + 3] = 0x000000FF & (ulIPAddress);
+
+		memcpy( &pucData[34], &SystemConfig.sntpServerAddress[0], SNTP_SERVER_LEN);
 
 		if ( 0xFFFFFFFF == addr->addr )
 		{
@@ -373,6 +454,10 @@ ui8 replyWithStatus = 0;
 			replyWithStatus = true;
 		break;
 		
+		case SSC_EXTENDED_PING :
+			SSC_SendExtendedInfo( addr );
+		break;
+
 		case SSC_RELAY_CON :
 			// bit fields to indicate which relays need to be on or off
 			RelayControl( pucData[1], pucData[2]  );
@@ -397,6 +482,7 @@ ui8 replyWithStatus = 0;
 	
 		case SSC_SET_UNIT_NAME :
 			SysSetBaseName( (ui8 *)&pucData[2] , pucData[1] );
+			replyWithStatus = true;
 		break;
 		
 		case SSC_SET_RELAY_NAME :
@@ -429,6 +515,12 @@ ui8 replyWithStatus = 0;
 			LogicInsertNewCondition( pucData[1], (ui8 *)&pucData[4] );
 		break;
 
+		case SSC_BRIDGE_SCAN :
+			// Kick off the scan. On SPI and I2C
+			SolderBridge_StartScan();
+			ExtGpio_Scan();
+		break;
+
 		case SSC_SB_SERVOPOS :
 			SB_ServoSet(0xFF, (ui8 *)&pucData[4], pucData[2], pucData[3]);
 		break;
@@ -446,7 +538,7 @@ ui8 replyWithStatus = 0;
 	
 	if ( replyWithStatus )
 	{
-		SSC_SendReply(p,addr);
+		SSC_SendReply(addr);
 	}
 	
 }

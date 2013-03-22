@@ -158,9 +158,13 @@ volatile ui32 result = 0;
 //*****************************************************************************
 void AdcAllAdcResults ( ui16 *resultsBuff, ui8 buffSize )
 {
-	resultsBuff[0] = LastAdc0Value;
-	resultsBuff[1] = LastAdc1Value;
-	resultsBuff[2] = LastAdc2Value;
+	if ( resultsBuff )
+	{
+		// TODO : Check buffsize
+		resultsBuff[0] = LastAdc0Value;
+		resultsBuff[1] = LastAdc1Value;
+		resultsBuff[2] = LastAdc2Value;
+	}
 }
 
 //*****************************************************************************

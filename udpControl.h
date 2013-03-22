@@ -14,18 +14,20 @@
 #define SSC_UDP_PORT_RX		11028
 #define SSC_UDP_PORT_TX		11029
 
-#define SSC_REPLY_LEN		99
-#define SSC_INFO_MSG_LEN	99
+#define SSC_REPLY_LEN			118
+#define SSC_EXTD_REPLY_LEN		66
+#define SSC_INFO_MSG_LEN		99
 
 
 
 #ifdef UDPCONTROL
 
-static ui8 SscReplyBuffer[100];
+static ui8 SscReplyBuffer[SSC_REPLY_LEN];
 
 enum SSC_COMMANDS 
 {
 	SSC_PING = 1,						// Check the Unit is there
+	SSC_EXTENDED_PING,					// Get Extended Info
 	SSC_RELAY_CON = 10,					// Control it's relays
 	SSC_PWM_DUTY,						// Duty for a single PWM
 	SSC_PWM_DUTY_ALL,					// Duty for a PWMs
@@ -39,7 +41,7 @@ enum SSC_COMMANDS
 	SSC_MANUAL_GPIO_DATA = 0x51, 		// set gpio outputs high or low
 	SSC_LOGIC_COMMAND = 0x60,
 	SSC_LOGIC_INSERT_CON = 0x61,		// Insert a command
-
+	SSC_BRIDGE_SCAN = 0x80,
 	SSC_SB_SERVOPOS = 0x90,
 
 	SSC_RESET = 0xFF
@@ -51,24 +53,36 @@ enum SSC_REPLY_POSITIONS
 	SSC_POS_IP,
 	SSC_POS_MAC = 5,
 	SSC_POS_SWREV = 11,
-	SSC_POS_RELAYSTATE = 13,
+	SSC_POS_UNITNAME = 13,
+	SSC_POS_CONFIG_BITS = 36,
+	SSC_POS_SPARE,
+	SSC_POS_ADC0,
+	SSC_POS_ADC1 = 40,
+	SSC_POS_ADC2 = 42,
+	SSC_POS_RELAYSTATE = 44,
 	SSC_POS_PWM0DUTY,
-	SSC_POS_PWM1DUTY = 16,
-	SSC_POS_PWM2DUTY = 18,
-	SSC_POS_PWMFREQ = 20,
-	SSC_POS_COLOURMODE = 22,
-	SSC_POS_REDDUTY,
+	SSC_POS_PWM1DUTY = 47,
+	SSC_POS_PWM2DUTY = 49,
+	SSC_POS_PWMFREQ = 51,
+	SSC_POS_COLOURMODE = 53,
+
+	SSC_POS_PWM3DUTY = 54,
+	SSC_POS_PWM4DUTY = 56,
+	SSC_POS_PWMFREQ2 = 58,
+
+	SSC_POS_REDDUTY = 60,
 	SSC_POS_GREENDUTY,
 	SSC_POS_BLUEDUTY,
+
 	SSC_POS_STEPSIZE,
 	SSC_POS_STEPCNT,
-	SSC_POS_GLOBALOUT_BITS = 29,
-	SSC_POS_UNITNAME_LEN,
-	SSC_POS_UNITNAME,
-	SSC_POS_RELAY1NAME = 51,
-	SSC_POS_RELAY2NAME = 63,
-	SSC_POS_RELAY3NAME = 75,
-	SSC_POS_RELAY4NAME = 87
+
+	SSC_POS_RELAY1NAME = 66,
+	SSC_POS_RELAY2NAME = 78,
+	SSC_POS_RELAY3NAME = 90,
+	SSC_POS_RELAY4NAME = 102,
+
+	SSC_POS_TIMESTAMP = 114
 };
 
 
@@ -86,7 +100,7 @@ struct SSC_COMMAND_STRUCT
 struct udp_pcb *UdpControlPort;
 
 static void SSC_ProcessCommand(struct udp_pcb *pcb, struct pbuf *p, struct ip_addr *addr);
-static void SSC_SendReply(struct pbuf *p, struct ip_addr *addr);
+static void SSC_SendReply(struct ip_addr *addr);
 static void SSC_Recieve(void *arg, struct udp_pcb *pcb, struct pbuf *p, struct ip_addr *addr, ui16 port);
 
 
