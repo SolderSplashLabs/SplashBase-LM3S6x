@@ -273,9 +273,6 @@ ui32 tempIp = 0;
     		// Reconfigure the ethernet
     		Ethernet_ReConfig();
 
-    		// Save the change
-    		SysConfigSave();
-
     		printConf = true;
     	}
     	else if ( 's' == argv[1][0] )
@@ -320,17 +317,12 @@ ui32 tempIp = 0;
 				if (printConf)
 				{
 					// Everything accepted
-					//SystemConfig.flags |= CONFIG_FLAG_STATICIP;
 					SystemConfig.flags.StaticIp = true;
 					Ethernet_ReConfig();
-
-					// Save the change
-					SysConfigSave();
 				}
 				else
 				{
 					// Error revert to dynamic
-					//SystemConfig.flags &= ~CONFIG_FLAG_STATICIP;
 					SystemConfig.flags.StaticIp = false;
 				}
 
@@ -429,11 +421,11 @@ tTime currentTime;
 				if ('-' == argv[3][0])
 				{
 					// The name lies, the TI ustrtoul will detect a negative value and give the right result
-					SystemConfig.timeOffset = ustrtoul((const char *)&argv[3][0], 0, 10);
+					SystemConfig.timeOffset = (si16)ustrtoul((const char *)&argv[3][0], 0, 10);
 				}
 				else
 				{
-					SystemConfig.timeOffset = ustrtoul((const char *)&argv[3][0], 0, 10);
+					SystemConfig.timeOffset = (si16)ustrtoul((const char *)&argv[3][0], 0, 10);
 				}
 			}
 
@@ -893,14 +885,12 @@ ui32 newVal = 0;
 		{
 			// "disable" the GPIO init
 			SystemConfig.flags.UserGpioInit = false;
-			SysConfigSave();
 			UARTprintf("User GPIO Initialisation Disabled\n");
 		}
 		else if ( 'e' == argv[1][0] )
 		{
 			// "enable" the GPIO init
 			SystemConfig.flags.UserGpioInit = true;
-			SysConfigSave();
 			UARTprintf("User GPIO Initialisation Enabled\n");
 		}
 	}
@@ -1003,7 +993,6 @@ ui16 stringLen = 0;
 			{
 				memcpy( &SystemConfig.cosmPrivKey[0], &argv[2][0], stringLen);
 				SystemConfig.cosmPrivKey[stringLen]=0;
-				SysConfigSave();
 			}
 		}
 		else if (( 's' == argv[1][0] ) && ( 'h' == argv[1][3] ))
@@ -1015,7 +1004,6 @@ ui16 stringLen = 0;
 				memcpy( &SystemConfig.cosmHost[0], &argv[2][0], stringLen);
 				SystemConfig.cosmHost[stringLen] = 0;
 				CosmHostUpdated();
-				SysConfigSave();
 			}
 		}
 		else if (( 's' == argv[1][0] ) && ( 'u' == argv[1][3] ))
@@ -1026,7 +1014,6 @@ ui16 stringLen = 0;
 			{
 				memcpy( &SystemConfig.cosmUrl[0], &argv[2][0], stringLen);
 				SystemConfig.cosmUrl[stringLen] = 0;
-				SysConfigSave();
 			}
 		}
 

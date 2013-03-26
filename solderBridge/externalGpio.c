@@ -97,6 +97,12 @@ void ExtGpio_Init( void )
 
     // Configure the interrupt line, this goes low when when an input changes
     GPIOPinTypeGPIOInput(EXT_GPIO_INTTERUPT_PORT, EXT_GPIO_INTTERUPT_PIN);
+
+    UserGpio_AppSetMask( USER_GPIO_PORTD, EXT_GPIO_INTTERUPT_PIN );
+
+    // Force an update
+    IoExpanders.updateDirection = 0xff;
+    IoExpanders.updateOutput = 0xff;
 }
 
 // *****************************************************************************
@@ -109,6 +115,7 @@ static void ExtGpio_UpdateDirection( void )
 {
 ui8 i = 0;
 ui8 selectedMask = 0;
+ui16 dirValue = 0;
 
 	// loop through each I2C address looking for one to update
 	for (i=0; i<PCA_MAX; i++)
@@ -118,7 +125,10 @@ ui8 selectedMask = 0;
 		{
 			if ( IoExpanders.updateDirection & selectedMask )
 			{
-				if ( ExtGpio_WriteReg ( PCA_ADDR_BASE+i, PCA9555_REG_DIR, IoExpanders.direction[i] ) )
+				// PCA Direction reg is inverted compared with the ARM, so we will store it in the arm
+				// format, 0 = input 1 = output and invert before sending
+				dirValue = ~IoExpanders.direction[i];
+				if ( ExtGpio_WriteReg ( PCA_ADDR_BASE+i, PCA9555_REG_DIR, dirValue ) )
 				{
 					IoExpanders.updateDirection &= ~selectedMask;
 				}
@@ -128,6 +138,11 @@ ui8 selectedMask = 0;
 					// TODO : Log
 				}
 			}
+		}
+		else
+		{
+			// Nothing to update
+			IoExpanders.updateDirection &= ~selectedMask;
 		}
 	}
 }
@@ -161,6 +176,11 @@ ui8 selectedMask = 0;
 					// TODO : Log
 				}
 			}
+		}
+		else
+		{
+			// Nothing to update
+			IoExpanders.updateOutput &= ~selectedMask;
 		}
 	}
 }
@@ -229,6 +249,7 @@ ui8 i = 0;
 // *****************************************************************************
 bool ExtGpio_ReadPort ( ui8 address, ui16 *portValue )
 {
+ui16 timeout = 0;
 bool result = false;
 ui32 error = 0;
 
@@ -240,10 +261,15 @@ ui32 error = 0;
 
 	//
     // Wait until master module is done transferring.
-    //
+    timeout = 0;
 	while(I2CMasterBusy(I2C0_MASTER_BASE))
 	{
-		// TODO : Bad, Don't want a hang up!
+		//  Don't want a hang up!
+		if (timeout++ > EXT_TIMEOUT)
+		{
+			LogEvent(1,1,0);
+			return ( result );
+		}
 	}
 
 	error = I2CMasterErr( I2C0_MASTER_BASE );
@@ -257,9 +283,15 @@ ui32 error = 0;
 		I2CMasterControl(I2C0_MASTER_BASE, I2C_MASTER_CMD_BURST_RECEIVE_START);
 
 		// Wait until master module is done transferring.
+		timeout = 0;
 		while(I2CMasterBusy(I2C0_MASTER_BASE))
 		{
-			// TODO : Bad, Don't want a hang up!
+			// Don't want a hang up!
+			if (timeout++ > EXT_TIMEOUT)
+			{
+				LogEvent(1,2,0);
+				return ( result );
+			}
 		}
 
 		error = I2CMasterErr( I2C0_MASTER_BASE );
@@ -272,10 +304,15 @@ ui32 error = 0;
 
 			//
 			// Wait until master module is done transferring.
-			//
+			timeout = 0;
 			while(I2CMasterBusy(I2C0_MASTER_BASE))
 			{
-				// TODO : Bad, Don't want a hang up!
+				// Don't want a hang up!
+				if (timeout++ > EXT_TIMEOUT)
+				{
+					LogEvent(1,3,0);
+					return ( result );
+				}
 			}
 
 			//*portValue <<= 8;
@@ -305,7 +342,7 @@ ui32 error = 0;
 
 	I2CMasterSlaveAddrSet(I2C0_MASTER_BASE, address, false);
 
-	I2CMasterDataPut(I2C0_MASTER_BASE, PCA9555_REG_DIR);
+	I2CMasterDataPut(I2C0_MASTER_BASE, reg);
 
 	I2CMasterControl(I2C0_MASTER_BASE, I2C_MASTER_CMD_BURST_SEND_START);
 

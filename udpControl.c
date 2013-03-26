@@ -61,7 +61,7 @@ ui8 strLenCnt = 0;
 	// Todo : Magic numbers ...
 
 	// Loop until you hit the max string length or find a 0 in the string
-	for(strLenCnt = 0; (strLenCnt < SPLASHBASE_RELAYNAME_LEN-1) && *pcAppTitle; strLenCnt++)
+	for(strLenCnt = 0; (strLenCnt < SPLASHBASE_NAME_LEN-1) && *pcAppTitle; strLenCnt++)
 	{
 		SscReplyBuffer[strLenCnt + SSC_POS_UNITNAME] = *pcAppTitle++;
 	}
@@ -69,7 +69,7 @@ ui8 strLenCnt = 0;
 	//
 	// Zero-fill the remainder of the space in the response data (if any).
 	//
-	for(; strLenCnt < SPLASHBASE_RELAYNAME_LEN-1; strLenCnt++)
+	for(; strLenCnt < SPLASHBASE_NAME_LEN-1; strLenCnt++)
 	{
 		SscReplyBuffer[strLenCnt + SSC_POS_UNITNAME] = 0;
 	}
@@ -189,6 +189,96 @@ volatile ui8 *pucData;
 
 //*****************************************************************************
 //
+// SSC_SendAllPortInfo - Sends the GPIO info message
+//
+//*****************************************************************************
+void SSC_SendAllPortInfo ( struct ip_addr *addr )
+{
+volatile ui8 *pucData;
+struct pbuf *p;
+ui8 pos;
+ui8 i = 0;
+ui32 ulIPAddress = 0;
+ui32 tempLong = 0;
+
+	p = pbuf_alloc(PBUF_TRANSPORT, SSC_GPIO_ALL_REPLY, PBUF_RAM);
+
+	if(p == NULL)
+	{
+	   // No ram!
+	}
+	else
+	{
+		pucData = p->payload;
+
+		// Message Header
+		pucData[SSC_POS_STARTBYTE] = SSC_REPLY_ALL_GPIO;
+
+		// Our IP
+		ulIPAddress = lwIPLocalIPAddrGet();
+		SscReplyBuffer[SSC_POS_IP] = 0x000000FF & (ulIPAddress >> 24);
+		SscReplyBuffer[SSC_POS_IP + 1] = 0x000000FF & (ulIPAddress >> 16);
+		SscReplyBuffer[SSC_POS_IP + 2] = 0x000000FF & (ulIPAddress >> 8);
+		SscReplyBuffer[SSC_POS_IP + 3] = 0x000000FF & (ulIPAddress);
+
+		// MAC address already in the buffer
+
+		// SW Rev - TODO : Move to Defines
+		SscReplyBuffer[SSC_POS_SWREV] = SW_REV_MAJOR;
+		SscReplyBuffer[SSC_POS_SWREV+1] = SW_REV_MINOR;
+
+		SscReplyBuffer[SSC_POS_CONFIG_BITS] = (*(ui8 *)&SystemConfig.flags);
+		SscReplyBuffer[SSC_POS_SPARE] = 0;
+
+		// Total number of GPIO ports
+		pucData[13] = GPIO_PORT_TOTAL;
+
+		pos = 14;
+		// Each GPIO port to follow
+		for ( i=0; i<GPIO_PORT_TOTAL; i++ )
+		{
+			UserGpioDirGet(i, &tempLong);
+
+			// We have no ports over 16bits ( mcu is 8bit io expanders are 16bit )
+			(*(ui16 *)&pucData[pos]) = (ui16)tempLong;
+			pos += 2;
+
+			UserGpioGet(i, &tempLong);
+			(*(ui16 *)&pucData[pos]) = (ui16)tempLong;
+			pos += 2;
+
+			(*(ui16 *)&pucData[pos]) = SystemConfig.UserGpioInit[i][0];
+			pos += 2;
+
+			(*(ui16 *)&pucData[pos]) = SystemConfig.UserGpioInit[i][1];
+			pos += 2;
+
+			(*(ui16 *)&pucData[pos]) = (ui16)UserGpio_AppMaskedIO(i);
+			pos += 2;
+		}
+
+		if ( 0xFFFFFFFF == addr->addr )
+		{
+			// Broadcast
+			addr = IP_ADDR_BROADCAST;
+		}
+		else
+		{
+			// Unicast
+		}
+
+		udp_sendto(UdpControlPort, p, addr, SSC_UDP_PORT_TX);
+
+		//
+		// Free the pbuf.
+		//
+		pbuf_free(p);
+	}
+}
+
+
+//*****************************************************************************
+//
 // SSC_SendPortInfo - Sends the GPIO info message
 //
 //*****************************************************************************
@@ -270,7 +360,6 @@ void SSC_SendExtendedInfo( struct ip_addr *addr )
 {
 volatile ui8 *pucData;
 struct pbuf *p;
-ui8 pos;
 ui8 i = 0;
 ui8 x = 0;
 ui32 ulIPAddress = 0;
@@ -333,7 +422,11 @@ ui32 ulIPAddress = 0;
 		pucData[30 + 2] = 0x000000FF & (ulIPAddress >> 8);
 		pucData[30 + 3] = 0x000000FF & (ulIPAddress);
 
-		memcpy( &pucData[34], &SystemConfig.sntpServerAddress[0], SNTP_SERVER_LEN);
+		memcpy( (ui8 *)&pucData[34], &SystemConfig.sntpServerAddress[0], SNTP_SERVER_LEN);
+
+		// Timestamp
+		pucData[66] = (ui8)(0x00FF & SystemConfig.timeOffset);
+		pucData[67] = (ui8)(0x00FF & (SystemConfig.timeOffset >> 8));
 
 		if ( 0xFFFFFFFF == addr->addr )
 		{
@@ -489,8 +582,55 @@ ui8 replyWithStatus = 0;
 			// String length
 			tempInt = pucData[2];
 
-			SysSetRelayName ( (ui8 *)&pucData[3], pucData[2], pucData[1], true );
+			SysSetRelayName ( (ui8 *)&pucData[3], pucData[2], pucData[1], false );
 		break;
+
+		case SSC_SET_CONFIG :
+
+			if ( (*(ui8 *)&SystemConfig.flags) != pucData[1] )
+			{
+				// Settings changed!!
+				SystemConfig.flags = (*((SysConfigFlags *)&pucData[1]));
+
+				if (SystemConfig.flags.StaticIp)
+				{
+					// Now static, might have changed IP settings
+					SystemConfig.ulStaticIP = htonl( *((ui32 *)&pucData[4]) );
+					SystemConfig.ulSubnetMask = htonl( *((ui32 *)&pucData[8]) );
+					SystemConfig.ulGatewayIP = htonl( *((ui32 *)&pucData[12]) );
+
+					Ethernet_ReConfig();
+				}
+				else
+				{
+					// dynamic
+					Ethernet_ReConfig();
+				}
+
+				RelayInit();
+				pwmInit();
+			}
+
+			if ( SystemConfig.flags.StaticIp )
+			{
+				SystemConfig.ulStaticIP = htonl( *((ui32 *)&pucData[4]) );
+				SystemConfig.ulSubnetMask = htonl( *((ui32 *)&pucData[8]) );
+				SystemConfig.ulGatewayIP = htonl( *((ui32 *)&pucData[12]) );
+
+				Ethernet_ReConfig();
+			}
+
+			SystemConfig.timeOffset = *((ui16 *)&pucData[51]);
+
+			// Set the SNTP Address, which saves the config as well
+			SysSetSntpAddress((ui8 *)&pucData[20], 31);
+
+		break;
+
+		case SSC_SAVE_CONFIG :
+			SysConfigSave();
+		break;
+
 
 		case SSC_RESET :
 			if (('k' == pucData[1]) && ('i' == pucData[2]) && ('c' == pucData[3]) && ('k' == pucData[4]))
@@ -498,17 +638,56 @@ ui8 replyWithStatus = 0;
 				// We have been told to reboot, pull the trigger
 				HWREG(NVIC_APINT) = (NVIC_APINT_VECTKEY | NVIC_APINT_SYSRESETREQ);
 			}
+			else if (('r' == pucData[1]) && ('e' == pucData[2]) && ('f' == pucData[3]) && ('l' == pucData[4]))
+			{
+				UpdateFirmwareReq();
+			}
+			else if (('d' == pucData[1]) && ('e' == pucData[2]) && ('f' == pucData[3]) && ('a' == pucData[4]))
+			{
+				SysConfigFactoryDefault();
+
+				SysConfigSave();
+
+				// Reboot
+				HWREG(NVIC_APINT) = (NVIC_APINT_VECTKEY | NVIC_APINT_SYSRESETREQ);
+			}
 		break;
 		
 		case SSC_MANUAL_GPIO_DIR :
 			// Port, Mask, Data
-
-			UserGpioDirection( pucData[1], (*(ui32 *)&pucData[2]), (*(ui32 *)&pucData[6]) );
+			UserGpioDirection( pucData[1], (*(ui16 *)&pucData[2]), (*(ui16 *)&pucData[6]) );
+			SSC_SendAllPortInfo( addr );
 		break;
 
 		case SSC_MANUAL_GPIO_DATA :
 			// Port, Mask, Data
-			UserGpioSetOutputs( pucData[1], (*(ui32 *)&pucData[2]), (*(ui32 *)&pucData[6]) );
+			UserGpioSetOutputs( pucData[1], (*(ui16 *)&pucData[2]), (*(ui16 *)&pucData[6]) );
+			SSC_SendAllPortInfo( addr );
+		break;
+
+		case SSC_MANUAL_GPIO_CONF :
+			UserGpioDirection( pucData[1], 0xffff, (*(ui16 *)&pucData[4]) );
+			UserGpioSetOutputs( pucData[1], 0xffff, (*(ui16 *)&pucData[6]) );
+			SSC_SendAllPortInfo( addr );
+		break;
+
+		case SSC_GET_ALL_GPIO :
+			SSC_SendAllPortInfo( addr );
+		break;
+
+		case SSC_INIT_GPIO_CONF :
+			if ( pucData[1] < GPIO_PORT_TOTAL )
+			{
+				SystemConfig.UserGpioInit[pucData[1]][0] = (*(ui16 *)&pucData[4]);
+				SystemConfig.UserGpioInit[pucData[1]][1] = (*(ui16 *)&pucData[6]);
+				SSC_SendAllPortInfo( addr );
+				// Remeber to save your changes!
+			}
+		break;
+
+		case SSC_INIT_GPIO_RUN :
+			UserGpioInit();
+			SSC_SendAllPortInfo( addr );
 		break;
 
 		case SSC_LOGIC_INSERT_CON :

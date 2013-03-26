@@ -15,7 +15,8 @@
 #define SSC_UDP_PORT_TX		11029
 
 #define SSC_REPLY_LEN			118
-#define SSC_EXTD_REPLY_LEN		66
+#define SSC_EXTD_REPLY_LEN		68
+#define SSC_GPIO_ALL_REPLY		164
 #define SSC_INFO_MSG_LEN		99
 
 
@@ -28,21 +29,31 @@ enum SSC_COMMANDS
 {
 	SSC_PING = 1,						// Check the Unit is there
 	SSC_EXTENDED_PING,					// Get Extended Info
-	SSC_RELAY_CON = 10,					// Control it's relays
+	SSC_RELAY_CON = 0x0A,				// Control it's relays
 	SSC_PWM_DUTY,						// Duty for a single PWM
 	SSC_PWM_DUTY_ALL,					// Duty for a PWMs
 	SSC_PWM_FREQ,						// Set Freq of the PWMs masked
 	SSC_PWM_COLOUR_MODE,				// Use a colour mode to control the PWMs
 	SSC_SET_UNIT_NAME = 0x20,
 	SSC_SET_RELAY_NAME,					// Set the supplied relay no's name
+	SSC_SET_CONFIG,						// Change Settings
+	SSC_SAVE_CONFIG,					// Save Current config to non vol
 	SSC_OUTPUTS_ON_OFF = 0x30,			// Control all outputs, turn if on/off
 	SSC_SPLASHPIXEL_FBSET = 0x45,		// Set the SplashPixel Framebuffer
 	SSC_MANUAL_GPIO_DIR = 0x50, 		// Set gpio direction, 1 output
 	SSC_MANUAL_GPIO_DATA = 0x51, 		// set gpio outputs high or low
+	SSC_MANUAL_GPIO_CONF = 0x52,
+	SSC_GET_ALL_GPIO = 0x53,
+	SSC_INIT_GPIO_CONF = 0x54,			// Set init gpio dir and output
+	SSC_INIT_GPIO_RUN = 0x55,
 	SSC_LOGIC_COMMAND = 0x60,
 	SSC_LOGIC_INSERT_CON = 0x61,		// Insert a command
 	SSC_BRIDGE_SCAN = 0x80,
 	SSC_SB_SERVOPOS = 0x90,
+
+	SSC_REPLY_PING = 0xE1,
+	SSC_REPLY_CONFIG = 0xE2,
+	SSC_REPLY_ALL_GPIO = 0xE3,
 
 	SSC_RESET = 0xFF
 };

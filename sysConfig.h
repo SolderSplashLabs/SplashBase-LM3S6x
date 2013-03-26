@@ -88,13 +88,14 @@ typedef struct
     ui32 colour2;
 
     // Time Outset in minutes
-    si32 timeOffset;
+    si16 timeOffset;
+    ui16 spare;
 
     // SNTP ServerAddress
     ui8 sntpServerAddress[SNTP_SERVER_LEN];
 
-    // 120 bytes to hold the direction and pin high/low initialisation
-    ui32 UserGpioInit[15][2];
+    // 60 bytes to hold the direction and pin high/low initialisation
+    ui16 UserGpioInit[15][2];
 
     // 20x28 = 560 Bytes
     //ui8 LogicConditionsBuffer[ 560 ];
@@ -110,7 +111,7 @@ typedef struct
     ui8 cosmUrl[COSM_URL_LEN];
 
     // Padding to ensure the whole structure is 1024 bytes long.
-    ui8 ucReserved2[73];
+    ui8 ucReserved2[133];
 }
 tConfigParameters;
 
@@ -128,7 +129,7 @@ static const tConfigParameters CONFIG_FACTORY_DEFAULTS =
     (ui8) 0,
 
     // flags
-    {0,0,0,1,1,1,0,0},
+    {0,1,0,1,1,1,1,0},
 
     // SplashBase Name
     {
@@ -179,7 +180,10 @@ static const tConfigParameters CONFIG_FACTORY_DEFAULTS =
     (ui32)0x00000000,
 
     // Time offset
-    (si32)0,
+    (si16)0,
+
+    // Spare
+    (ui16)0,
 
     // SNTP Address 0.pool.ntp.org
 	{

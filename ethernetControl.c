@@ -155,7 +155,7 @@ void lwIPHostTimerHandler (void)
 			{
 				if ( SystemConfig.flags.NtpEnabled )
 				{
-					//SntpGetTime();
+					SntpGetTime();
 				}
 				askedForTime = true;
 			}

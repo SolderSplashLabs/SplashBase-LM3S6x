@@ -21,6 +21,8 @@
 #define EXT_GPIO_INTTERUPT_PORT			GPIO_PORTD_BASE
 #define EXT_GPIO_INTTERUPT_PIN			BIT7
 
+#define EXT_TIMEOUT 			0x7FFF		// While Waiting we loop this many times before failing
+
 typedef struct PCA9555
 {
 	ui8 pcaAvailible;				// Mask to show which pca's we have detected

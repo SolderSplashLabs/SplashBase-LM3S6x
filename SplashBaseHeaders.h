@@ -46,6 +46,7 @@
 #endif
 
 #include "main.h"
+#include "logger.h"
 #include "selfTest.h"
 #include "colourModes.h"
 #include "cosm.h"

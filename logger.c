@@ -21,8 +21,14 @@
 // *****************************************************************************
 void LogEvent ( ui8 eventId, ui32 eventData, ui32 eventData2 )
 {
+	volatile int i = 0;
+
+	// Something to put a break point on, it does nothing, yet!
+	i = i + eventId;
+
 	// Time stamp it
-	//Time_StampNow();
+	// Time_StampNow();
+
 }
 
 // *****************************************************************************

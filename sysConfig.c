@@ -60,6 +60,7 @@ void SysConfigLoad(void)
 void SysConfigSave(void)
 {
 	// Save to flash
+	// TODO : Only save if different...
     FlashPBSave((unsigned char *)&SystemConfig);
 }
 
@@ -99,8 +100,6 @@ void SysSetBaseName ( ui8 *buffer, ui8 len )
 
 	// And the SolderSplash UDP Protocol
 	SSC_SetUnitName((ui8 *)SystemConfig.splashBaseName);
-
-	SysConfigSave();
 }
 
 // *****************************************************************************
@@ -114,8 +113,6 @@ void SysSetSntpAddress ( ui8 *buffer, ui8 len )
 
 	ustrncpy((char *)SystemConfig.sntpServerAddress, (const char *)buffer, len);
 	SystemConfig.sntpServerAddress[len] = 0;
-
-	SysConfigSave();
 }
 
 // *****************************************************************************
@@ -132,9 +129,7 @@ void SysConfigRelayEnable ( void )
 	}
 	else
 	{
-		//SystemConfig.flags |= CONFIG_FOUR_RELAY_EN;
 		SystemConfig.flags.FourRelayEnable = true;
-		SysConfigSave();
 
 		RelayInit();
 	}
@@ -150,9 +145,7 @@ void SysConfigRelayDisable ( void )
 	//if ( SystemConfig.flags & CONFIG_FOUR_RELAY_EN )
 	if ( SystemConfig.flags.FourRelayEnable )
 	{
-		//SystemConfig.flags &= ~CONFIG_FOUR_RELAY_EN;
 		SystemConfig.flags.FourRelayEnable = false;
-		SysConfigSave();
 	}
 	else
 	{

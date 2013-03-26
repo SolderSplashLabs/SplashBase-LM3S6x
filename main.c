@@ -173,9 +173,6 @@ void InitialiseHW ( void )
 	// Grab the Config from Flash
 	SysConfigInit();
 
-    // Set up the GPIO as specified by the user
-    UserGpioInit();
-
 	AdcInit();
 	pwmInit();
 	RelayInit();
@@ -214,6 +211,9 @@ void InitialiseHW ( void )
 	#ifdef SPLASHPIXEL_ENABLED
 		SP_Init();
 	#endif
+
+	// Set up the GPIO as specified by the user
+	UserGpioInit();
 
 	// Most, if not all M3's have a SysTick which you can use for scheduling your code
 	SysTickPeriodSet(SysCtlClockGet() / SYSTICKHZ);

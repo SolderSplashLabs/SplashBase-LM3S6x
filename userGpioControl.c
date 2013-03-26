@@ -37,12 +37,22 @@ ui32 mask = 0;
 			mask = UserGpio_AppGetMask ( i, 0xFFFFFFFF );
 
 			// Now apply initialisation to the port pins I can touch
-			UserGpioDirection( i, mask, SystemConfig.UserGpioInit[i][0] );
-			UserGpioSetOutputs(i, mask, SystemConfig.UserGpioInit[i][1] );
+			UserGpioDirection( i, mask, (ui32)SystemConfig.UserGpioInit[i][0] );
+			UserGpioSetOutputs(i, mask, (ui32)SystemConfig.UserGpioInit[i][1] );
 		}
 	}
 }
 
+
+// *****************************************************************************
+//
+// UserGpio_AppMaskedIO
+//
+// *****************************************************************************
+ui32 UserGpio_AppMaskedIO( ui8 portNo )
+{
+	return (UserGpioMask[portNo]);
+}
 
 // *****************************************************************************
 //
