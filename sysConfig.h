@@ -97,10 +97,6 @@ typedef struct
     // 60 bytes to hold the direction and pin high/low initialisation
     ui16 UserGpioInit[15][2];
 
-    // 20x28 = 560 Bytes
-    //ui8 LogicConditionsBuffer[ 560 ];
-    LOGIC_CONDITION LogicConditionsBuffer[LOGIC_MAX_CONDITIONS];
-
     // HTTP Private/API key
     ui8 cosmPrivKey[COSM_API_KEY_LEN];
 
@@ -110,8 +106,15 @@ typedef struct
     // HTTP URL (without the host)
     ui8 cosmUrl[COSM_URL_LEN];
 
+    // 20x28 = 560 Bytes
+    //ui8 LogicConditionsBuffer[ 560 ];
+    //LOGIC_CONDITION LogicConditionsBuffer[LOGIC_MAX_CONDITIONS];
+    LOGIC_CONDITIONS LogicConditions;
+    LOGIC_ACTIONS LogicActions;
+    LOGIC_EVENTS LogicEvents;
+
     // Padding to ensure the whole structure is 1024 bytes long.
-    ui8 ucReserved2[133];
+    ui8 ucReserved2[107];
 }
 tConfigParameters;
 

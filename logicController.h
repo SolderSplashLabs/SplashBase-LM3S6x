@@ -12,9 +12,12 @@
 */
 // We have a number of "Registers" that actions can effect and can then in turn generate new events
 #define LOGIC_NUM_OF_REGISTERS	10
-#define LOGIC_MAX_CONDITIONS	20
+#define LOGIC_COND_CNT		24
+#define LOGIC_ACT_CNT		24
+#define LOGIC_EVENT_CNT		24
 
-typedef enum LOGIC_EVENT_TYPE
+
+typedef enum LOGIC_COND_TYPE
 {
 	L_EVENT_INVALID,
 	L_EVENT_GPIO_RAISING,
@@ -41,7 +44,7 @@ typedef enum LOGIC_EVENT_TYPE
 	L_EVENT_GPIO_HIGH,
 	L_EVENT_GPIO_LOW,
 	L_EVENT_MAX
-} LOGIC_EVENT_TYPE;
+} LOGIC_COND_TYPE;
 
 typedef enum LOGIC_ACTION_TYPE
 {
@@ -62,9 +65,34 @@ typedef enum LOGIC_ACTION_TYPE
 	L_ACTION_MAX
 } LOGIC_ACTION_TYPE;
 
+// Using a struct of arrays instead of an array of structures to avoid structure packing
+typedef struct LOGIC_CONDITIONS
+{
+	LOGIC_COND_TYPE condType[LOGIC_COND_CNT];
+	ui32 condParam1[LOGIC_COND_CNT];
+	ui32 condParam2[LOGIC_COND_CNT];
+
+} LOGIC_CONDITIONS;
+
+typedef struct LOGIC_ACTIONS
+{
+	LOGIC_ACTION_TYPE actionType[LOGIC_ACT_CNT];
+	ui32 actionParam1[LOGIC_ACT_CNT];
+	ui32 actionParam2[LOGIC_ACT_CNT];
+} LOGIC_ACTIONS;
+
+// The logic lists checks 1 or 2 Conditions if true it then actions all actions defined by the actionMask.
+typedef struct LOGIC_LIST
+{
+	ui8 conditionNumber1[LOGIC_EVENT_CNT];
+	ui8 conditionNumber2[LOGIC_EVENT_CNT];
+	ui32 actionMask[LOGIC_EVENT_CNT];
+} LOGIC_EVENTS;
+
 
 // Note : Add remote control another splashbase option, set/clear relay? set output?
 
+/*
 // 28 bytes per. 560 total
 typedef struct LOGIC_CONDITION
 {
@@ -84,6 +112,7 @@ typedef struct LOGIC_CONDITION
 	ui32 actionParam2;
 
 } LOGIC_CONDITION;
+*/
 
 #ifdef _LOGIC_H_
 
@@ -137,20 +166,29 @@ const char *LOGIC_ACTION_TYPE_NAMES[L_ACTION_MAX] = {	"None",
 #else
 
 extern const char *LOGIC_EVENT_TYPE_NAMES[L_EVENT_MAX];
-extern LOGIC_CONDITION *LogicConditions;
+//extern LOGIC_CONDITION *LogicConditions;
 
 #endif
 
 void LogicTask ( void );
+void LogicCopyActions ( ui8 *buff );
+void LogicCopyConditions ( ui8 *buff );
+void LogicCopyEvents ( ui8 *buff );
+void LogicEditAction( ui8 position, ui8 *newAction );
+void LogicEditEvent ( ui8 position, ui8 *newEvent );
+void LogicEditCondition( ui8 position, ui8 *newCondition );
+bool LogicProcessCondition ( ui8 conditionNo );
+
 void LogicSetPinHigh ( ui8 conditionNo );
 void LogicSetPinLow ( ui8 conditionNo );
 void LogicTakeAction ( ui8 conditionNo );
 bool LogicCheckPinLow ( ui8 conditionNo );
 bool LogicCheckPinHigh ( ui8 conditionNo );
 void LogicCapturePortData ( void );
-bool LogicProcessCondition ( ui8 conditionNo, bool secondaryEvent );
-void LogicInsertNewCondition (ui8 position, ui8 *newCondition );
+
 void LogicStartStop ( bool start );
-void LogicSaveConditions ( void );
+
+/*
 const char * LogicGetActionStr ( ui8 position );
 const char * LogicGetEventStr ( ui8 position, bool primary );
+*/

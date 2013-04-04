@@ -16,7 +16,7 @@
 
 // TODO : tidy up
 //LOGIC_CONDITION LogicConditions[LOGIC_MAX_CONDITIONS];
-LOGIC_CONDITION *LogicConditions;
+//LOGIC_CONDITION *LogicConditions;
 
 ui16 LogicRegisters[LOGIC_NUM_OF_REGISTERS];
 ui8 LogicRunning = false;

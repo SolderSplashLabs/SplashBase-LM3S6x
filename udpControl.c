@@ -447,6 +447,189 @@ ui32 ulIPAddress = 0;
 	}
 }
 
+//*****************************************************************************
+//
+// SSC_SendLogicActions -
+//
+//*****************************************************************************
+void SSC_SendLogicActions( struct ip_addr *addr )
+{
+volatile ui8 *pucData;
+struct pbuf *p;
+ui32 ulIPAddress = 0;
+
+	p = pbuf_alloc(PBUF_TRANSPORT, SSC_REPLY_LEN_ACTION, PBUF_RAM);
+
+	if(p == NULL)
+	{
+		// No ram!
+		// TODO : Log
+	}
+	else
+	{
+		pucData = p->payload;
+
+		// Message Header
+		pucData[SSC_POS_STARTBYTE] = SSC_REPLY_LOGIC_ACT;
+
+		// Our IP
+		ulIPAddress = lwIPLocalIPAddrGet();
+		pucData[SSC_POS_IP] = 0x000000FF & (ulIPAddress >> 24);
+		pucData[SSC_POS_IP + 1] = 0x000000FF & (ulIPAddress >> 16);
+		pucData[SSC_POS_IP + 2] = 0x000000FF & (ulIPAddress >> 8);
+		pucData[SSC_POS_IP + 3] = 0x000000FF & (ulIPAddress);
+
+		// MAC Addr
+		Ethernet_GetMacAddress((ui8 *)&pucData[SSC_POS_MAC]);
+
+		pucData[11] = (*(ui8 *)&SystemConfig.flags);
+		pucData[12] = 0;
+
+		pucData[13] = 24;
+
+		LogicCopyActions( (ui8 *)&pucData[14] );
+
+		if ( 0xFFFFFFFF == addr->addr )
+		{
+			// Broadcast
+			addr = IP_ADDR_BROADCAST;
+		}
+		else
+		{
+			// Unicast
+		}
+
+		udp_sendto(UdpControlPort, p, addr, SSC_UDP_PORT_TX);
+
+		//
+		// Free the pbuf.
+		//
+		pbuf_free(p);
+	}
+}
+
+//*****************************************************************************
+//
+// SSC_SendLogicConditions -
+//
+//*****************************************************************************
+void SSC_SendLogicConditions( struct ip_addr *addr )
+{
+volatile ui8 *pucData;
+struct pbuf *p;
+
+ui32 ulIPAddress = 0;
+
+	p = pbuf_alloc(PBUF_TRANSPORT, SSC_REPLY_LEN_COND, PBUF_RAM);
+
+	if(p == NULL)
+	{
+	   // No ram!
+		// TODO : Log
+	}
+	else
+	{
+		pucData = p->payload;
+
+		// Message Header
+		pucData[SSC_POS_STARTBYTE] = SSC_REPLY_LOGIC_COND;
+
+		// Our IP
+		ulIPAddress = lwIPLocalIPAddrGet();
+		pucData[SSC_POS_IP] = 0x000000FF & (ulIPAddress >> 24);
+		pucData[SSC_POS_IP + 1] = 0x000000FF & (ulIPAddress >> 16);
+		pucData[SSC_POS_IP + 2] = 0x000000FF & (ulIPAddress >> 8);
+		pucData[SSC_POS_IP + 3] = 0x000000FF & (ulIPAddress);
+
+		// MAC Addr
+		Ethernet_GetMacAddress((ui8 *)&pucData[SSC_POS_MAC]);
+
+		pucData[11] = (*(ui8 *)&SystemConfig.flags);
+		pucData[12] = 0;
+
+		pucData[13] = 24;
+
+		LogicCopyConditions( (ui8 *)&pucData[14] );
+
+		if ( 0xFFFFFFFF == addr->addr )
+		{
+			// Broadcast
+			addr = IP_ADDR_BROADCAST;
+		}
+		else
+		{
+			// Unicast
+		}
+
+		udp_sendto(UdpControlPort, p, addr, SSC_UDP_PORT_TX);
+
+		//
+		// Free the pbuf.
+		//
+		pbuf_free(p);
+	}
+}
+
+//*****************************************************************************
+//
+// SSC_SendLogicEvents -
+//
+//*****************************************************************************
+void SSC_SendLogicEvents( struct ip_addr *addr )
+{
+volatile ui8 *pucData;
+struct pbuf *p;
+ui32 ulIPAddress = 0;
+
+	p = pbuf_alloc(PBUF_TRANSPORT, SSC_REPLY_LEN_EVENT, PBUF_RAM);
+
+	if(p == NULL)
+	{
+	   // No ram!
+		// TODO : Log
+	}
+	else
+	{
+		pucData = p->payload;
+
+		// Message Header
+		pucData[SSC_POS_STARTBYTE] = SSC_REPLY_LOGIC_EVENTS;
+
+		// Our IP
+		ulIPAddress = lwIPLocalIPAddrGet();
+		pucData[SSC_POS_IP] = 0x000000FF & (ulIPAddress >> 24);
+		pucData[SSC_POS_IP + 1] = 0x000000FF & (ulIPAddress >> 16);
+		pucData[SSC_POS_IP + 2] = 0x000000FF & (ulIPAddress >> 8);
+		pucData[SSC_POS_IP + 3] = 0x000000FF & (ulIPAddress);
+
+		// MAC Addr
+		Ethernet_GetMacAddress((ui8 *)&pucData[SSC_POS_MAC]);
+
+		pucData[11] = (*(ui8 *)&SystemConfig.flags);
+		pucData[12] = 0;
+
+		pucData[13] = 24;
+
+		LogicCopyEvents( (ui8 *)&pucData[14] );
+
+		if ( 0xFFFFFFFF == addr->addr )
+		{
+			// Broadcast
+			addr = IP_ADDR_BROADCAST;
+		}
+		else
+		{
+			// Unicast
+		}
+
+		udp_sendto(UdpControlPort, p, addr, SSC_UDP_PORT_TX);
+
+		//
+		// Free the pbuf.
+		//
+		pbuf_free(p);
+	}
+}
 
 //*****************************************************************************
 //
@@ -690,8 +873,28 @@ ui8 replyWithStatus = 0;
 			SSC_SendAllPortInfo( addr );
 		break;
 
-		case SSC_LOGIC_INSERT_CON :
-			LogicInsertNewCondition( pucData[1], (ui8 *)&pucData[4] );
+		case SSC_LOGIC_EDT_ACT :
+			LogicEditAction( pucData[1], (ui8 *)&pucData[2]);
+		break;
+
+		case SSC_LOGIC_EDT_COND :
+			LogicEditCondition( pucData[1], (ui8 *)&pucData[2]);
+		break;
+
+		case SSC_LOGIC_EDT_EVENT :
+			LogicEditEvent( pucData[2], (ui8 *)&pucData[3]);
+		break;
+
+		case SSC_LOGIC_READ_ACTION :
+			SSC_SendLogicActions( addr );
+		break;
+
+		case SSC_LOGIC_READ_CONDTION :
+			SSC_SendLogicConditions( addr );
+		break;
+
+		case SSC_LOGIC_READ_EVENTS :
+			SSC_SendLogicEvents( addr );
 		break;
 
 		case SSC_BRIDGE_SCAN :

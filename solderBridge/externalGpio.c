@@ -457,7 +457,12 @@ void ExtGpio_GetPort ( ui8 port, ui16 *buffer )
 	{
 		if ( port < PCA_MAX )
 		{
-			*buffer = IoExpanders.input[port];
+			// Take the input reg and clear down any bits set as outputs
+			// TODO : has the direction been inverted yet?
+			*buffer = IoExpanders.input[port] & ~IoExpanders.direction[port];
+
+			// Combine the input with the output
+			*buffer |= IoExpanders.output[port];
 		}
 	}
 }

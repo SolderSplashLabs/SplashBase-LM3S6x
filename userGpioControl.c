@@ -46,7 +46,7 @@ ui32 mask = 0;
 
 // *****************************************************************************
 //
-// UserGpio_AppMaskedIO
+// UserGpio_AppMaskedIO - Return masked io for the supplied port
 //
 // *****************************************************************************
 ui32 UserGpio_AppMaskedIO( ui8 portNo )

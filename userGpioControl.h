@@ -45,6 +45,7 @@ extern const ui8 GPIO_PORT_LETTERS[];
 
 void UserGpioInit ( void );
 ui32 UserGpio_AppGetMask( ui8 portNo, ui32 mask );
+ui32 UserGpio_AppMaskedIO( ui8 portNo );
 void UserGpio_AppSetMask( ui8 portNo, ui32 mask );
 void UserGpio_AppClrMask( ui8 portNo, ui32 mask );
 bool UserGpioDirInput ( ui8 portNo, ui32 pins );

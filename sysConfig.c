@@ -22,7 +22,16 @@
 // *****************************************************************************
 void SysConfigFactoryDefault(void)
 {
+ui8 i = 0;
+
 	memcpy( &SystemConfig, &CONFIG_FACTORY_DEFAULTS, sizeof(SystemConfig));
+
+	// Here because i didnt want to manually add to the default struct
+	for ( i=0; i<LOGIC_EVENT_CNT; i++)
+	{
+		SystemConfig.LogicEvents.conditionNumber1[i] = 0xff;
+		SystemConfig.LogicEvents.conditionNumber2[i] = 0xff;
+	}
 }
 
 // *****************************************************************************
