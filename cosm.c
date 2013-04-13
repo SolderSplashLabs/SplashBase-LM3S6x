@@ -5,7 +5,7 @@
   ___) | (_) | | (_| |  __/ |   ___) | |_) | | (_| \__ \ | | |	| |__| (_| | |_) \__ \
  |____/ \___/|_|\__,_|\___|_|  |____/| .__/|_|\__,_|___/_| |_|	|_____\__,_|_.__/|___/
                                      |_|
- (C)SolderSplash Labs 2012 - www.soldersplash.co.uk - C. Matthews - R. Steel
+ (C)SolderSplash Labs 2013 - www.soldersplash.co.uk - C. Matthews - R. Steel
 
 */
 #include <string.h>
@@ -84,12 +84,6 @@ void CosmTest(unsigned long data)
 	temperature = AdcGetTemperature();
 
 	dataLen = usprintf(dataBuffer, "ADC0,%u\r\nADC1,%u\r\nTemperature,%u\r\n", adc0, adc1, temperature );
-	//dataLen = dataLen-2;
-
-	//dataLen = usprintf(dataBuffer, "ADC0,%u\r\n", adc0);
-	//dataLen = dataLen-2;
-
-	// TODO : Make sure we dont overflow the string we are building.
 
 	// /v2/feeds/%s.csv
 	CosmCommandLen = usprintf(&CosmCommandBuffer[0], "PUT %s HTTP/1.1\r\n", SystemConfig.cosmUrl );

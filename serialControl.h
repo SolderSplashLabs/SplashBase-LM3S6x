@@ -59,12 +59,25 @@ extern int CMD_FirmwareUpdate (int argc, char **argv);
 #ifdef _SERIAL_CONTROL_
 
 // Serial Banner, this looks mangled but in putty it looks good!
+/*
 const char WELCOME_MSG[] = "\n  ____        _     _           ____        _           _	 _          _\n\
  / ___|  ___ | | __| | ___ _ __/ ___| _ __ | | __ _ ___| |__	| |    __ _| |__  ___ \n\
  \\___ \\ / _ \\| |/ _` |/ _ \\ '__\\___ \\| '_ \\| |/ _` / __| '_ \\	| |   / _` | '_ \\/ __| \n\
   ___) | (_) | | (_| |  __/ |   ___) | |_) | | (_| \\__ \\ | | |	| |__| (_| | |_) \\__ \\ \n\
  |____/ \\___/|_|\\__,_|\\___|_|  |____/| .__/|_|\\__,_|___/_| |_|	|_____\\__,_|_.__/|___/ \n\
                                      |_| \nSolderSplash Labs - SplashBase V";
+*/
+
+const char WELCOME_MSG[] = " ____        _     _           ____        _           _     \n\
+/ ___|  ___ | | __| | ___ _ __/ ___| _ __ | | __ _ ___| |__ \n\
+\\___ \\ / _ \\| |/ _` |/ _ \\ '__\\___ \\| '_ \\| |/ _` / __| '_ \\ \n\
+ ___) | (_) | | (_| |  __/ |   ___) | |_) | | (_| \\__ \\ | | | \n\
+|____/ \\___/|_|\\__,_|\\___|_|  |____/| .__/|_|\\__,_|___/_| |_| \n\
+ _          _                       |_| \n\
+| |    __ _| |__  ___ \n\
+| |   / _` | '_ \\/ __| \n\
+| |__| (_| | |_) \\__ \\ \n\
+|_____\\__,_|_.__/|___/ \n\nSolderSplash Labs - SplashBase V";
 
 const char ACK_STRING[] = "Acknowledged\n";
 
@@ -106,5 +119,6 @@ tCmdLineEntry g_sCmdTable[] =
 static const char * const g_pcHex = "0123456789abcdef";
 const int NUM_CMD = sizeof(g_sCmdTable)/sizeof(tCmdLineEntry);
 bool SerialPrintBridgeScanResult = false;
-
+#else
+	extern const char WELCOME_MSG[];
 #endif

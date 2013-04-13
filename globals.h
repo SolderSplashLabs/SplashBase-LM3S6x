@@ -18,7 +18,7 @@
 #define SYSTICKMS               (1000 / SYSTICKHZ)
 
 #define SW_REV_MAJOR 			0
-#define SW_REV_MINOR			9
+#define SW_REV_MINOR			10
 
 // Revision of base board the software is running on
 #define SPLASHBASE_BOARD_REV	2

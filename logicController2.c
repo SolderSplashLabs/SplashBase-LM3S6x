@@ -280,18 +280,6 @@ volatile ui8 tempUi8 = 0;
 				}
 			break;
 
-			case L_EVENT_REPEAT_TIMER :
-
-			break;
-
-			case L_EVENT_GPIO_RAISING_DB :
-
-			break;
-
-			case L_EVENT_GPIO_FALLING_DB :
-
-			break;
-
 			case L_EVENT_BOOT :
 				if ( justBooted )
 				{
@@ -419,11 +407,6 @@ volatile ui8 tempUi8 = 0;
 					}
 				}
 
-			break;
-
-			case L_EVENT_NET_MSG :
-				// Network message to trigger action
-				// TODO : this could supply a value and if it matches the param then triggers the saved action?
 			break;
 
 		}

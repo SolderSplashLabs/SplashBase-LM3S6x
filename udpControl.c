@@ -216,19 +216,20 @@ ui32 tempLong = 0;
 
 		// Our IP
 		ulIPAddress = lwIPLocalIPAddrGet();
-		SscReplyBuffer[SSC_POS_IP] = 0x000000FF & (ulIPAddress >> 24);
-		SscReplyBuffer[SSC_POS_IP + 1] = 0x000000FF & (ulIPAddress >> 16);
-		SscReplyBuffer[SSC_POS_IP + 2] = 0x000000FF & (ulIPAddress >> 8);
-		SscReplyBuffer[SSC_POS_IP + 3] = 0x000000FF & (ulIPAddress);
+		pucData[SSC_POS_IP] = 0x000000FF & (ulIPAddress >> 24);
+		pucData[SSC_POS_IP + 1] = 0x000000FF & (ulIPAddress >> 16);
+		pucData[SSC_POS_IP + 2] = 0x000000FF & (ulIPAddress >> 8);
+		pucData[SSC_POS_IP + 3] = 0x000000FF & (ulIPAddress);
 
 		// MAC address already in the buffer
+		Ethernet_GetMacAddress( (ui8 *)&pucData[SSC_POS_MAC] );
 
 		// SW Rev - TODO : Move to Defines
-		SscReplyBuffer[SSC_POS_SWREV] = SW_REV_MAJOR;
-		SscReplyBuffer[SSC_POS_SWREV+1] = SW_REV_MINOR;
+		pucData[SSC_POS_SWREV] = SW_REV_MAJOR;
+		pucData[SSC_POS_SWREV+1] = SW_REV_MINOR;
 
-		SscReplyBuffer[SSC_POS_CONFIG_BITS] = (*(ui8 *)&SystemConfig.flags);
-		SscReplyBuffer[SSC_POS_SPARE] = 0;
+		pucData[SSC_POS_CONFIG_BITS] = (*(ui8 *)&SystemConfig.flags);
+		pucData[SSC_POS_SPARE] = 0;
 
 		// Total number of GPIO ports
 		pucData[13] = GPIO_PORT_TOTAL;

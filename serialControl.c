@@ -595,6 +595,22 @@ int CMD_Factory (int argc, char **argv)
 			SysConfigSave();
 			UARTprintf("System Config Saved\n");
 		}
+
+		if ( argc > 2 )
+		{
+			// telnet listen
+			if (( 't' == argv[1][0] ) && ( 'e' == argv[1][1] ) && ( 'l' == argv[2][0] ))
+			{
+				TelnetListen();
+				UARTprintf("Telnet listening port : 2323\n");
+			}
+			// telnet close
+			else if (( 't' == argv[1][0] ) && ( 'e' == argv[1][1] ) && ( 'c' == argv[2][0] ))
+			{
+				TelnetDisconnect();
+				UARTprintf("Closing telnet port\n");
+			}
+		}
 	}
 	else
 	{
